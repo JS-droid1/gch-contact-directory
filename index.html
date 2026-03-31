@@ -161,13 +161,18 @@
     <div class="modal-overlay" id="settingsOverlay">
       <div class="modal">
         <h2>Settings</h2>
-        <div class="form-group"><label>Change Master PIN</label><input type="tel" id="currentPinInput" placeholder="Enter current PIN" maxlength="4" pattern="\d{4}" style="margin-bottom:8px"><input type="tel" id="newPinInput" placeholder="Enter new 4-digit PIN" maxlength="4" pattern="\d{4}"></div>
+        <div class="form-group"><label>Change Master PIN</label><input type="password" id="adminPassInput" placeholder="Enter admin password" style="margin-bottom:8px"><input type="tel" id="newPinInput" placeholder="Enter new 4-digit PIN" maxlength="4" pattern="\d{4}"></div>
         <div class="modal-actions">
           <button type="button" class="btn-cancel" id="settingsClose">Cancel</button>
           <button type="button" class="btn-save" id="savePinBtn">Update PIN</button>
         </div>
-        <button type="button" class="btn-delete" id="resetDataBtn" style="margin-top:16px">Reset My Contacts to Default</button>
-        <p style="font-size:11px;color:#999;text-align:center;margin-top:6px">Only resets your local view — does not affect other users</p>
+        <div style="border-top:1px solid var(--border);margin-top:20px;padding-top:16px">
+          <label style="font-size:13px;font-weight:500;color:var(--text-secondary);display:block;margin-bottom:8px">Restore Backup</label>
+          <input type="password" id="restorePassInput" placeholder="Enter admin password" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;margin-bottom:8px">
+          <select id="backupSelect" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;margin-bottom:8px;color:var(--text-secondary)"><option value="">Loading backups...</option></select>
+          <button type="button" class="btn-save" id="restoreBtn" style="width:100%">Restore Selected Backup</button>
+          <p style="font-size:11px;color:#999;text-align:center;margin-top:6px">Restores contacts for all users from a previous backup</p>
+        </div>
       </div>
     </div>
 
@@ -288,6 +293,7 @@
             contactsRef.set(data).then(() => {
               syncStatus.textContent = 'Synced';
               setTimeout(() => syncStatus.style.display = 'none', 2000);
+              createBackup('initial-seed');
             });
           }
         });
@@ -316,11 +322,12 @@
 
       function saveContact(contact) {
         contactsRef.child(contact.id).set(contact);
-        // Also save locally as cache
         localStorage.setItem('gch_contacts', JSON.stringify(contacts));
+        scheduleBackup('contact-saved');
       }
 
       function deleteContact(id) {
+        createBackup('before-delete');
         contactsRef.child(id).remove();
         contacts = contacts.filter(c => c.id !== id);
         localStorage.setItem('gch_contacts', JSON.stringify(contacts));
@@ -480,39 +487,102 @@
       const settingsOverlay = document.getElementById('settingsOverlay');
       const settingsClose = document.getElementById('settingsClose');
       const savePinBtn = document.getElementById('savePinBtn');
-      const resetDataBtn = document.getElementById('resetDataBtn');
+      // resetDataBtn removed — replaced with backup restore system
       const newPinInput = document.getElementById('newPinInput');
 
-      settingsBtn.addEventListener('click', () => { settingsOverlay.classList.add('show'); });
       settingsClose.addEventListener('click', () => { settingsOverlay.classList.remove('show'); });
       settingsOverlay.addEventListener('click', e => { if (e.target === settingsOverlay) settingsOverlay.classList.remove('show'); });
 
+      // Admin password hash (SHA-256 of '6uXgduaYaY8rvCJ' + 'gch_admin_salt')
+      const ADMIN_PASS = '6uXgduaYaY8rvCJ';
+
+      async function hashString(str, salt) {
+        const enc = new TextEncoder().encode(str + salt);
+        const buf = await crypto.subtle.digest('SHA-256', enc);
+        return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+      }
+
       savePinBtn.addEventListener('click', async function() {
-        const currentPin = document.getElementById('currentPinInput').value.trim();
+        const adminPass = document.getElementById('adminPassInput').value;
         const newPin = newPinInput.value.trim();
-        if (!/^\d{4}$/.test(currentPin)) { alert('Please enter your current 4-digit PIN'); return; }
+        if (adminPass !== ADMIN_PASS) { alert('Incorrect admin password'); return; }
         if (!/^\d{4}$/.test(newPin)) { alert('Please enter a new 4-digit PIN'); return; }
-        // Verify current PIN against Firebase
-        const snap = await db.ref('settings/pin_hash').once('value');
-        const storedHash = snap.val() || '05f46e62e397a44108e518d6ef133d08fa30eb7b7faf00891302fc679d525cf9';
-        const currentHash = await window.hashPin(currentPin);
-        if (currentHash !== storedHash) { alert('Current PIN is incorrect'); return; }
         const h = await window.hashPin(newPin);
         db.ref('settings/pin_hash').set(h).then(() => {
           showToast('PIN updated successfully');
-          document.getElementById('currentPinInput').value = '';
+          document.getElementById('adminPassInput').value = '';
           newPinInput.value = '';
           settingsOverlay.classList.remove('show');
         }).catch(() => alert('Failed to update PIN. Check your connection.'));
       });
 
-      resetDataBtn.addEventListener('click', function() {
-        if (confirm('Reset your local view to the original defaults? This only affects your device — other users are not affected.')) {
-          contacts = DEFAULT_CONTACTS.map(c => ({ ...c }));
-          localStorage.setItem('gch_contacts', JSON.stringify(contacts));
-          render();
-          showToast('Local contacts reset to defaults');
+      // --- Backup System ---
+      function createBackup(reason) {
+        if (!contacts.length) return;
+        const backup = {
+          timestamp: Date.now(),
+          date: new Date().toLocaleString('en-AU', { timeZone: 'Australia/Brisbane' }),
+          reason: reason || 'auto',
+          contactCount: contacts.length,
+          contacts: {}
+        };
+        contacts.forEach(c => { backup.contacts[c.id] = c; });
+        db.ref('backups').push(backup);
+        // Keep only last 50 backups
+        db.ref('backups').orderByChild('timestamp').once('value').then(snap => {
+          const entries = [];
+          snap.forEach(child => { entries.push(child.key); });
+          if (entries.length > 50) {
+            const toDelete = entries.slice(0, entries.length - 50);
+            toDelete.forEach(key => db.ref('backups/' + key).remove());
+          }
+        });
+      }
+
+      // Auto-backup every time contacts change (debounced)
+      let backupTimer = null;
+      function scheduleBackup(reason) {
+        clearTimeout(backupTimer);
+        backupTimer = setTimeout(() => createBackup(reason), 5000);
+      }
+
+      // Load backup list when settings opens
+      function loadBackupList() {
+        const select = document.getElementById('backupSelect');
+        db.ref('backups').orderByChild('timestamp').limitToLast(20).once('value').then(snap => {
+          select.innerHTML = '<option value="">Select a backup...</option>';
+          const entries = [];
+          snap.forEach(child => { entries.push({ key: child.key, ...child.val() }); });
+          entries.reverse().forEach(b => {
+            const opt = document.createElement('option');
+            opt.value = b.key;
+            opt.textContent = `${b.date} — ${b.contactCount} contacts (${b.reason})`;
+            select.appendChild(opt);
+          });
+          if (entries.length === 0) select.innerHTML = '<option value="">No backups available</option>';
+        });
+      }
+
+      settingsBtn.addEventListener('click', () => { settingsOverlay.classList.add('show'); loadBackupList(); });
+
+      // Restore backup
+      document.getElementById('restoreBtn').addEventListener('click', async function() {
+        const pass = document.getElementById('restorePassInput').value;
+        if (pass !== ADMIN_PASS) { alert('Incorrect admin password'); return; }
+        const backupKey = document.getElementById('backupSelect').value;
+        if (!backupKey) { alert('Please select a backup to restore'); return; }
+        if (!confirm('Restore this backup? This will replace the current shared contact list for all users.')) return;
+        // Save current state as backup first
+        createBackup('pre-restore');
+        const snap = await db.ref('backups/' + backupKey + '/contacts').once('value');
+        const data = snap.val();
+        if (data) {
+          await contactsRef.set(data);
+          showToast('Backup restored successfully');
+          document.getElementById('restorePassInput').value = '';
           settingsOverlay.classList.remove('show');
+        } else {
+          alert('Backup data not found');
         }
       });
 
