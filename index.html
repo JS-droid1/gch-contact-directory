@@ -50,6 +50,8 @@
     .action-icon { width: 18px; height: 18px; fill: #ccc; cursor: pointer; padding: 4px; box-sizing: content-box; border-radius: 6px; transition: fill 0.15s, background 0.15s; -webkit-tap-highlight-color: transparent; }
     .edit-icon:active { fill: var(--primary); background: #e8f0fe; }
     .delete-icon:active { fill: #c0392b; background: #fde8e8; }
+    .contact-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+    .contact-tag { font-size: 10px; background: #f0f2f5; color: var(--text-secondary); padding: 2px 7px; border-radius: 4px; font-weight: 500; }
     .section-header { font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; padding: 12px 4px 6px; }
     .empty-state { text-align: center; padding: 48px 24px; color: var(--text-secondary); }
     .empty-state svg { width: 48px; height: 48px; fill: #ccc; margin-bottom: 12px; }
@@ -145,11 +147,108 @@
     <div class="modal-overlay" id="modalOverlay">
       <div class="modal">
         <h2 id="modalTitle">Add Contact</h2>
+        <div id="privacyNotice" style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:10px 12px;margin-bottom:16px;font-size:12px;color:#856404;line-height:1.4">
+          <strong>Privacy Notice:</strong> Please do not add individual consultant names or personal mobile numbers. Only add DECT phone numbers, ward numbers, and publicly available contact numbers.
+        </div>
         <form id="contactForm">
-          <div class="form-group"><label for="inputName">Name</label><input type="text" id="inputName" placeholder="e.g. ICU Registrar" required></div>
+          <div class="form-group"><label for="inputName">Name</label><input type="text" id="inputName" placeholder="e.g. ICU Registrar DECT" required></div>
           <div class="form-group"><label for="inputPhone">Phone Number</label><input type="tel" id="inputPhone" placeholder="e.g. 0756875914" required></div>
           <div class="form-group"><label for="inputLocation">Hospital</label>
             <select id="inputLocation"><option value="">Not specified</option><option value="GCUH">GCUH</option><option value="Robina">Robina</option></select>
+          </div>
+          <div class="form-group"><label for="inputSpecialty">Specialty / Department</label>
+            <select id="inputSpecialty">
+              <option value="">Not specified</option>
+              <optgroup label="Medical Specialties">
+                <option value="Anaesthetics">Anaesthetics</option>
+                <option value="Cardiology">Cardiology</option>
+                <option value="Cardiothoracic Surgery">Cardiothoracic Surgery</option>
+                <option value="Dermatology">Dermatology</option>
+                <option value="Emergency Medicine">Emergency Medicine</option>
+                <option value="Endocrinology">Endocrinology</option>
+                <option value="ENT">ENT</option>
+                <option value="Gastroenterology">Gastroenterology</option>
+                <option value="General Medicine">General Medicine</option>
+                <option value="General Surgery">General Surgery</option>
+                <option value="Geriatrics">Geriatrics</option>
+                <option value="Gynaecology">Gynaecology</option>
+                <option value="Haematology">Haematology</option>
+                <option value="ICU / Intensive Care">ICU / Intensive Care</option>
+                <option value="Immunology">Immunology</option>
+                <option value="Infectious Diseases">Infectious Diseases</option>
+                <option value="Neonatology">Neonatology</option>
+                <option value="Nephrology">Nephrology</option>
+                <option value="Neurology">Neurology</option>
+                <option value="Neurosurgery">Neurosurgery</option>
+                <option value="Obstetrics">Obstetrics</option>
+                <option value="Oncology">Oncology</option>
+                <option value="Ophthalmology">Ophthalmology</option>
+                <option value="Oral & Maxillofacial Surgery">Oral &amp; Maxillofacial Surgery</option>
+                <option value="Orthopaedics">Orthopaedics</option>
+                <option value="Paediatrics">Paediatrics</option>
+                <option value="Palliative Care">Palliative Care</option>
+                <option value="Pathology">Pathology</option>
+                <option value="Plastics / Burns">Plastics / Burns</option>
+                <option value="Psychiatry / Mental Health">Psychiatry / Mental Health</option>
+                <option value="Radiology">Radiology</option>
+                <option value="Rehabilitation">Rehabilitation</option>
+                <option value="Renal">Renal</option>
+                <option value="Respiratory / Thoracic Medicine">Respiratory / Thoracic Medicine</option>
+                <option value="Rheumatology">Rheumatology</option>
+                <option value="Urology">Urology</option>
+                <option value="Vascular Surgery">Vascular Surgery</option>
+              </optgroup>
+              <optgroup label="Non-Medical">
+                <option value="Administration">Administration</option>
+                <option value="Allied Health">Allied Health</option>
+                <option value="Bed Management">Bed Management</option>
+                <option value="Chaplaincy">Chaplaincy</option>
+                <option value="Dietetics">Dietetics</option>
+                <option value="Engineering / Maintenance">Engineering / Maintenance</option>
+                <option value="Kitchen / Food Services">Kitchen / Food Services</option>
+                <option value="Laboratory">Laboratory</option>
+                <option value="Library">Library</option>
+                <option value="Nursing Team Leader">Nursing Team Leader</option>
+                <option value="Occupational Therapy">Occupational Therapy</option>
+                <option value="Patient Flow">Patient Flow</option>
+                <option value="Pharmacy">Pharmacy</option>
+                <option value="Physiotherapy">Physiotherapy</option>
+                <option value="Security">Security</option>
+                <option value="Social Work">Social Work</option>
+                <option value="Speech Pathology">Speech Pathology</option>
+                <option value="Switchboard">Switchboard</option>
+                <option value="Transport">Transport</option>
+                <option value="Wardsperson">Wardsperson</option>
+                <option value="MISC">MISC</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="form-group"><label for="inputPosition">Position / Role</label>
+            <select id="inputPosition">
+              <option value="">Not specified</option>
+              <optgroup label="Medical">
+                <option value="Consultant">Consultant</option>
+                <option value="Fellow">Fellow</option>
+                <option value="Registrar">Registrar</option>
+                <option value="Resident (RMO)">Resident (RMO)</option>
+                <option value="Intern (JHO)">Intern (JHO)</option>
+              </optgroup>
+              <optgroup label="Nursing">
+                <option value="Nurse Unit Manager">Nurse Unit Manager</option>
+                <option value="Nursing Team Leader">Nursing Team Leader</option>
+                <option value="Clinical Nurse">Clinical Nurse</option>
+                <option value="Registered Nurse">Registered Nurse</option>
+                <option value="Enrolled Nurse">Enrolled Nurse</option>
+              </optgroup>
+              <optgroup label="Other">
+                <option value="Allied Health Professional">Allied Health Professional</option>
+                <option value="Ward Clerk">Ward Clerk</option>
+                <option value="Administration">Administration</option>
+                <option value="Department">Department</option>
+                <option value="Service / Helpline">Service / Helpline</option>
+                <option value="MISC">MISC</option>
+              </optgroup>
+            </select>
           </div>
           <div class="modal-actions"><button type="button" class="btn-cancel" id="btnCancel">Cancel</button><button type="submit" class="btn-save">Save</button></div>
           <button type="button" class="btn-delete" id="btnDelete" style="display:none">Delete Contact</button>
@@ -345,19 +444,23 @@
         return d;
       }
 
+      function matchesSearch(c, q) {
+        return c.name.toLowerCase().includes(q) || c.phone.includes(q) || (c.extension && c.extension.includes(q)) || (c.specialty && c.specialty.toLowerCase().includes(q)) || (c.position && c.position.toLowerCase().includes(q));
+      }
+
       function getFilteredContacts() {
         let filtered = contacts;
         if (activeTab === 'gcuh') filtered = filtered.filter(c => c.location === 'GCUH');
         else if (activeTab === 'robina') filtered = filtered.filter(c => c.location === 'Robina');
         if (searchTerm) {
           const q = searchTerm.toLowerCase();
-          filtered = filtered.filter(c => c.name.toLowerCase().includes(q) || c.phone.includes(q) || (c.extension && c.extension.includes(q)));
+          filtered = filtered.filter(c => matchesSearch(c, q));
         }
         return filtered.sort((a, b) => a.name.localeCompare(b.name));
       }
 
       function updateCounts() {
-        const match = c => { if (!searchTerm) return true; const q = searchTerm.toLowerCase(); return c.name.toLowerCase().includes(q) || c.phone.includes(q) || (c.extension && c.extension.includes(q)); };
+        const match = c => { if (!searchTerm) return true; const q = searchTerm.toLowerCase(); return matchesSearch(c, q); };
         document.getElementById('count-all').textContent = contacts.filter(match).length;
         document.getElementById('count-gcuh').textContent = contacts.filter(c => c.location === 'GCUH' && match(c)).length;
         document.getElementById('count-robina').textContent = contacts.filter(c => c.location === 'Robina' && match(c)).length;
@@ -377,8 +480,10 @@
           const badgeClass = c.location === 'GCUH' ? 'badge-gcuh' : c.location === 'Robina' ? 'badge-robina' : '';
           const badge = c.location ? `<span class="badge ${badgeClass}">${c.location}</span>` : '';
           const ext = c.extension && !c.phone.startsWith('*') ? `<span class="contact-ext">ext. ${c.extension}</span>` : '';
+          const tags = [c.specialty, c.position].filter(Boolean);
+          const tagHtml = tags.length ? `<div class="contact-tags">${tags.map(t => `<span class="contact-tag">${escapeHtml(t)}</span>`).join('')}</div>` : '';
           html += `<div class="contact-card" data-id="${c.id}" data-phone="${c.phone}">
-            <div class="contact-info"><div class="contact-name">${escapeHtml(c.name)}</div><div class="contact-phone">${formatPhone(c.phone)}${ext}</div></div>
+            <div class="contact-info"><div class="contact-name">${escapeHtml(c.name)}</div><div class="contact-phone">${formatPhone(c.phone)}${ext}</div>${tagHtml}</div>
             <div class="contact-badges">${badge}<div style="display:flex;align-items:center;gap:6px;">
               <svg class="action-icon edit-icon" data-edit="${c.id}" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
               <svg class="action-icon delete-icon" data-delete="${c.id}" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
@@ -405,6 +510,10 @@
         clearTimeout(showToast._t); showToast._t = setTimeout(() => toast.classList.remove('show'), 1500);
       }
 
+      const inputSpecialty = document.getElementById('inputSpecialty');
+      const inputPosition = document.getElementById('inputPosition');
+      const privacyNotice = document.getElementById('privacyNotice');
+
       function openModal(id) {
         editingId = id || null;
         if (editingId) {
@@ -412,9 +521,12 @@
           if (!c) return;
           modalTitle.textContent = 'Edit Contact';
           inputName.value = c.name; inputPhone.value = c.phone; inputLocation.value = c.location || '';
+          inputSpecialty.value = c.specialty || ''; inputPosition.value = c.position || '';
           btnDelete.style.display = 'block';
+          privacyNotice.style.display = 'none';
         } else {
           modalTitle.textContent = 'Add Contact'; contactForm.reset(); btnDelete.style.display = 'none';
+          privacyNotice.style.display = 'block';
         }
         modalOverlay.classList.add('show');
         setTimeout(() => inputName.focus(), 300);
@@ -464,6 +576,8 @@
         const name = inputName.value.trim();
         const phone = inputPhone.value.trim().replace(/\s/g, '');
         const location = inputLocation.value;
+        const specialty = inputSpecialty.value;
+        const position = inputPosition.value;
         if (!name || !phone) return;
 
         let extension = null;
@@ -471,10 +585,10 @@
 
         if (editingId) {
           const c = contacts.find(x => x.id === editingId);
-          if (c) { c.name = name; c.phone = phone; c.extension = extension; c.location = location; saveContact(c); }
+          if (c) { c.name = name; c.phone = phone; c.extension = extension; c.location = location; c.specialty = specialty; c.position = position; saveContact(c); }
         } else {
           const maxId = contacts.reduce((max, c) => Math.max(max, c.id || 0), 0);
-          const newContact = { id: maxId + 1, name, phone, extension, location };
+          const newContact = { id: maxId + 1, name, phone, extension, location, specialty, position };
           contacts.push(newContact);
           saveContact(newContact);
         }
