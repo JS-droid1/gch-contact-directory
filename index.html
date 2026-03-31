@@ -12,659 +12,226 @@
   <title>GCH Contact Directory</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-
     :root {
-      --primary: #1a5276;
-      --primary-light: #2471a3;
-      --bg: #f0f2f5;
-      --card: #ffffff;
-      --text: #1a1a1a;
-      --text-secondary: #5a6268;
-      --border: #e2e6ea;
-      --gcuh-badge: #2471a3;
-      --robina-badge: #1a8a5c;
-      --safe-top: env(safe-area-inset-top, 0px);
-      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --primary: #1a5276; --primary-light: #2471a3; --bg: #f0f2f5;
+      --card: #ffffff; --text: #1a1a1a; --text-secondary: #5a6268;
+      --border: #e2e6ea; --gcuh-badge: #2471a3; --robina-badge: #1a8a5c;
+      --safe-top: env(safe-area-inset-top, 0px); --safe-bottom: env(safe-area-inset-bottom, 0px);
     }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      -webkit-text-size-adjust: 100%;
-      min-height: 100vh;
-      padding-top: var(--safe-top);
-      padding-bottom: var(--safe-bottom);
-    }
-
-    .sticky-top {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-
-    header {
-      background: var(--primary);
-      padding: 16px 16px 12px;
-    }
-
-    header h1 {
-      color: #fff;
-      font-size: 20px;
-      font-weight: 600;
-      margin-bottom: 12px;
-    }
-
-    .search-wrap {
-      position: relative;
-    }
-
-    .search-wrap svg {
-      position: absolute;
-      left: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 16px;
-      height: 16px;
-      fill: #999;
-    }
-
-    #searchBar {
-      width: 100%;
-      padding: 10px 12px 10px 36px;
-      border: none;
-      border-radius: 10px;
-      font-size: 16px;
-      background: #fff;
-      color: var(--text);
-      outline: none;
-      -webkit-appearance: none;
-    }
-
+    body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif; background: var(--bg); color: var(--text); -webkit-text-size-adjust: 100%; min-height: 100vh; padding-top: var(--safe-top); padding-bottom: var(--safe-bottom); }
+    .sticky-top { position: sticky; top: 0; z-index: 100; }
+    header { background: var(--primary); padding: 16px 16px 12px; }
+    .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    header h1 { color: #fff; font-size: 20px; font-weight: 600; }
+    .settings-btn { background: none; border: none; cursor: pointer; padding: 4px; -webkit-tap-highlight-color: transparent; }
+    .settings-btn svg { width: 22px; height: 22px; fill: rgba(255,255,255,0.7); }
+    .settings-btn:active svg { fill: #fff; }
+    .search-wrap { position: relative; }
+    .search-wrap svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; fill: #999; }
+    #searchBar { width: 100%; padding: 10px 12px 10px 36px; border: none; border-radius: 10px; font-size: 16px; background: #fff; color: var(--text); outline: none; -webkit-appearance: none; }
     #searchBar::placeholder { color: #999; }
-
-    nav {
-      display: flex;
-      background: #fff;
-      border-bottom: 1px solid var(--border);
-    }
-
-    nav button {
-      flex: 1;
-      padding: 12px 0;
-      border: none;
-      background: none;
-      font-size: 14px;
-      font-weight: 500;
-      color: var(--text-secondary);
-      cursor: pointer;
-      position: relative;
-      transition: color 0.2s;
-    }
-
-    nav button.active {
-      color: var(--primary);
-      font-weight: 600;
-    }
-
-    nav button.active::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 20%;
-      right: 20%;
-      height: 3px;
-      background: var(--primary);
-      border-radius: 3px 3px 0 0;
-    }
-
-    .count-badge {
-      display: inline-block;
-      background: var(--bg);
-      color: var(--text-secondary);
-      font-size: 11px;
-      padding: 1px 6px;
-      border-radius: 10px;
-      margin-left: 4px;
-      font-weight: 400;
-    }
-
-    nav button.active .count-badge {
-      background: #e8f0fe;
-      color: var(--primary);
-    }
-
-    main {
-      padding: 8px 12px 100px;
-    }
-
-    .contact-card {
-      background: var(--card);
-      border-radius: 12px;
-      padding: 14px 16px;
-      margin-bottom: 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
-      transition: background 0.15s;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    .contact-card:active {
-      background: #f5f7fa;
-    }
-
-    .contact-info {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .contact-name {
-      font-size: 15px;
-      font-weight: 500;
-      margin-bottom: 4px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .contact-phone {
-      font-size: 14px;
-      color: var(--primary-light);
-      font-weight: 400;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .contact-ext {
-      font-size: 12px;
-      color: var(--text-secondary);
-      margin-left: 8px;
-    }
-
-    .contact-badges {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 4px;
-      margin-left: 12px;
-      flex-shrink: 0;
-    }
-
-    .badge {
-      font-size: 10px;
-      font-weight: 600;
-      padding: 2px 8px;
-      border-radius: 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-    }
-
-    .badge-gcuh {
-      background: #e8f4fd;
-      color: var(--gcuh-badge);
-    }
-
-    .badge-robina {
-      background: #e6f5ee;
-      color: var(--robina-badge);
-    }
-
-    .copy-icon {
-      width: 20px;
-      height: 20px;
-      fill: #bbb;
-    }
-
-    .delete-icon {
-      width: 18px;
-      height: 18px;
-      fill: #ccc;
-      cursor: pointer;
-      padding: 4px;
-      box-sizing: content-box;
-      border-radius: 6px;
-      transition: fill 0.15s, background 0.15s;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    .delete-icon:active {
-      fill: #c0392b;
-      background: #fde8e8;
-    }
-
-    .section-header {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text-secondary);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      padding: 12px 4px 6px;
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 48px 24px;
-      color: var(--text-secondary);
-    }
-
-    .empty-state svg {
-      width: 48px;
-      height: 48px;
-      fill: #ccc;
-      margin-bottom: 12px;
-    }
-
-    /* FAB */
-    #addBtn {
-      position: fixed;
-      bottom: calc(24px + var(--safe-bottom));
-      right: 20px;
-      width: 56px;
-      height: 56px;
-      border-radius: 16px;
-      background: var(--primary);
-      color: #fff;
-      border: none;
-      font-size: 28px;
-      font-weight: 300;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(26,82,118,0.3);
-      z-index: 90;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: transform 0.2s, background 0.2s;
-      -webkit-tap-highlight-color: transparent;
-    }
-
+    nav { display: flex; background: #fff; border-bottom: 1px solid var(--border); }
+    nav button { flex: 1; padding: 12px 0; border: none; background: none; font-size: 14px; font-weight: 500; color: var(--text-secondary); cursor: pointer; position: relative; transition: color 0.2s; }
+    nav button.active { color: var(--primary); font-weight: 600; }
+    nav button.active::after { content: ''; position: absolute; bottom: 0; left: 20%; right: 20%; height: 3px; background: var(--primary); border-radius: 3px 3px 0 0; }
+    .count-badge { display: inline-block; background: var(--bg); color: var(--text-secondary); font-size: 11px; padding: 1px 6px; border-radius: 10px; margin-left: 4px; font-weight: 400; }
+    nav button.active .count-badge { background: #e8f0fe; color: var(--primary); }
+    main { padding: 8px 12px 100px; }
+    .contact-card { background: var(--card); border-radius: 12px; padding: 14px 16px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.04); -webkit-tap-highlight-color: transparent; }
+    .contact-info { flex: 1; min-width: 0; }
+    .contact-name { font-size: 15px; font-weight: 500; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .contact-phone { font-size: 14px; color: var(--primary-light); font-weight: 400; font-variant-numeric: tabular-nums; }
+    .contact-ext { font-size: 12px; color: var(--text-secondary); margin-left: 8px; }
+    .contact-badges { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; margin-left: 12px; flex-shrink: 0; }
+    .badge { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.3px; }
+    .badge-gcuh { background: #e8f4fd; color: var(--gcuh-badge); }
+    .badge-robina { background: #e6f5ee; color: var(--robina-badge); }
+    .copy-icon { width: 20px; height: 20px; fill: #bbb; }
+    .action-icon { width: 18px; height: 18px; fill: #ccc; cursor: pointer; padding: 4px; box-sizing: content-box; border-radius: 6px; transition: fill 0.15s, background 0.15s; -webkit-tap-highlight-color: transparent; }
+    .edit-icon:active { fill: var(--primary); background: #e8f0fe; }
+    .delete-icon:active { fill: #c0392b; background: #fde8e8; }
+    .section-header { font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; padding: 12px 4px 6px; }
+    .empty-state { text-align: center; padding: 48px 24px; color: var(--text-secondary); }
+    .empty-state svg { width: 48px; height: 48px; fill: #ccc; margin-bottom: 12px; }
+    #addBtn { position: fixed; bottom: calc(24px + var(--safe-bottom)); right: 20px; width: 56px; height: 56px; border-radius: 16px; background: var(--primary); color: #fff; border: none; font-size: 28px; font-weight: 300; cursor: pointer; box-shadow: 0 4px 12px rgba(26,82,118,0.3); z-index: 90; display: flex; align-items: center; justify-content: center; -webkit-tap-highlight-color: transparent; }
     #addBtn:active { transform: scale(0.92); background: var(--primary-light); }
-
-    /* Modal */
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.4);
-      z-index: 200;
-      display: flex;
-      align-items: flex-end;
-      justify-content: center;
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.25s, visibility 0.25s;
-    }
-
-    .modal-overlay.show {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    .modal {
-      background: #fff;
-      width: 100%;
-      max-width: 500px;
-      border-radius: 20px 20px 0 0;
-      padding: 24px 20px calc(24px + var(--safe-bottom));
-      transform: translateY(100%);
-      transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
-    }
-
-    .modal-overlay.show .modal {
-      transform: translateY(0);
-    }
-
-    .modal h2 {
-      font-size: 18px;
-      font-weight: 600;
-      margin-bottom: 20px;
-    }
-
-    .form-group {
-      margin-bottom: 16px;
-    }
-
-    .form-group label {
-      display: block;
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text-secondary);
-      margin-bottom: 6px;
-    }
-
-    .form-group input,
-    .form-group select {
-      width: 100%;
-      padding: 12px;
-      border: 1.5px solid var(--border);
-      border-radius: 10px;
-      font-size: 16px;
-      outline: none;
-      -webkit-appearance: none;
-      background: #fff;
-      transition: border-color 0.2s;
-    }
-
-    .form-group input:focus,
-    .form-group select:focus {
-      border-color: var(--primary);
-    }
-
-    .form-group select {
-      background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='1.5' fill='none'/%3E%3C/svg%3E") no-repeat right 14px center;
-      padding-right: 36px;
-    }
-
-    .modal-actions {
-      display: flex;
-      gap: 10px;
-      margin-top: 20px;
-    }
-
-    .modal-actions button {
-      flex: 1;
-      padding: 14px;
-      border: none;
-      border-radius: 12px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .btn-cancel {
-      background: var(--bg);
-      color: var(--text-secondary);
-    }
-
-    .btn-save {
-      background: var(--primary);
-      color: #fff;
-    }
-
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; display: flex; align-items: flex-end; justify-content: center; opacity: 0; visibility: hidden; transition: opacity 0.25s, visibility 0.25s; }
+    .modal-overlay.show { opacity: 1; visibility: visible; }
+    .modal { background: #fff; width: 100%; max-width: 500px; border-radius: 20px 20px 0 0; padding: 24px 20px calc(24px + var(--safe-bottom)); transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1); }
+    .modal-overlay.show .modal { transform: translateY(0); }
+    .modal h2 { font-size: 18px; font-weight: 600; margin-bottom: 20px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 500; color: var(--text-secondary); margin-bottom: 6px; }
+    .form-group input, .form-group select { width: 100%; padding: 12px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 16px; outline: none; -webkit-appearance: none; background: #fff; transition: border-color 0.2s; }
+    .form-group input:focus, .form-group select:focus { border-color: var(--primary); }
+    .form-group select { background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='1.5' fill='none'/%3E%3C/svg%3E") no-repeat right 14px center; padding-right: 36px; }
+    .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+    .modal-actions button { flex: 1; padding: 14px; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; }
+    .btn-cancel { background: var(--bg); color: var(--text-secondary); }
+    .btn-save { background: var(--primary); color: #fff; }
     .btn-save:active { background: var(--primary-light); }
-
-    /* Delete button in modal */
-    .btn-delete {
-      width: 100%;
-      padding: 14px;
-      border: none;
-      border-radius: 12px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      background: #fde8e8;
-      color: #c0392b;
-      margin-top: 10px;
-    }
-
+    .btn-delete { width: 100%; padding: 14px; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; background: #fde8e8; color: #c0392b; margin-top: 10px; }
     .btn-delete:active { background: #f9d0d0; }
-
-    /* Toast */
-    #toast {
-      position: fixed;
-      bottom: calc(96px + var(--safe-bottom));
-      left: 50%;
-      transform: translateX(-50%) translateY(20px);
-      background: #333;
-      color: #fff;
-      padding: 10px 24px;
-      border-radius: 10px;
-      font-size: 14px;
-      font-weight: 500;
-      opacity: 0;
-      transition: opacity 0.25s, transform 0.25s;
-      z-index: 300;
-      pointer-events: none;
-    }
-
-    #toast.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
-
-    /* Scroll to top spacing for sticky header */
-    @supports (padding-top: env(safe-area-inset-top)) {
-      header { padding-top: calc(16px + var(--safe-top)); }
-    }
+    #toast { position: fixed; bottom: calc(96px + var(--safe-bottom)); left: 50%; transform: translateX(-50%) translateY(20px); background: #333; color: #fff; padding: 10px 24px; border-radius: 10px; font-size: 14px; font-weight: 500; opacity: 0; transition: opacity 0.25s, transform 0.25s; z-index: 300; pointer-events: none; }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .sync-status { font-size: 11px; color: rgba(255,255,255,0.5); text-align: center; padding: 4px 0; background: var(--primary); }
+    @supports (padding-top: env(safe-area-inset-top)) { header { padding-top: calc(16px + var(--safe-top)); } }
 
     /* Lock Screen */
-    #lockScreen {
-      position: fixed;
-      inset: 0;
-      background: var(--primary);
-      z-index: 500;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-      padding-top: var(--safe-top);
-    }
-
+    #lockScreen { position: fixed; inset: 0; background: var(--primary); z-index: 500; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; padding-top: var(--safe-top); }
     #lockScreen.hidden { display: none; }
-
-    .lock-icon {
-      width: 56px;
-      height: 56px;
-      fill: rgba(255,255,255,0.3);
-      margin-bottom: 16px;
-    }
-
-    .lock-title {
-      color: #fff;
-      font-size: 22px;
-      font-weight: 600;
-      margin-bottom: 6px;
-    }
-
-    .lock-subtitle {
-      color: rgba(255,255,255,0.6);
-      font-size: 14px;
-      margin-bottom: 32px;
-    }
-
-    .pin-dots {
-      display: flex;
-      gap: 16px;
-      margin-bottom: 32px;
-    }
-
-    .pin-dot {
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      border: 2px solid rgba(255,255,255,0.5);
-      transition: background 0.15s, border-color 0.15s;
-    }
-
-    .pin-dot.filled {
-      background: #fff;
-      border-color: #fff;
-    }
-
-    .pin-dot.error {
-      border-color: #e74c3c;
-      background: #e74c3c;
-    }
-
-    .pin-pad {
-      display: grid;
-      grid-template-columns: repeat(3, 72px);
-      gap: 14px;
-    }
-
-    .pin-key {
-      width: 72px;
-      height: 72px;
-      border-radius: 50%;
-      border: 1.5px solid rgba(255,255,255,0.25);
-      background: rgba(255,255,255,0.08);
-      color: #fff;
-      font-size: 28px;
-      font-weight: 300;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-      transition: background 0.15s;
-    }
-
+    .lock-icon { width: 56px; height: 56px; fill: rgba(255,255,255,0.3); margin-bottom: 16px; }
+    .lock-title { color: #fff; font-size: 22px; font-weight: 600; margin-bottom: 6px; }
+    .lock-subtitle { color: rgba(255,255,255,0.6); font-size: 14px; margin-bottom: 32px; }
+    .pin-dots { display: flex; gap: 16px; margin-bottom: 32px; }
+    .pin-dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.5); transition: background 0.15s, border-color 0.15s; }
+    .pin-dot.filled { background: #fff; border-color: #fff; }
+    .pin-dot.error { border-color: #e74c3c; background: #e74c3c; }
+    .pin-pad { display: grid; grid-template-columns: repeat(3, 72px); gap: 14px; }
+    .pin-key { width: 72px; height: 72px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.08); color: #fff; font-size: 28px; font-weight: 300; display: flex; align-items: center; justify-content: center; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background 0.15s; }
     .pin-key:active { background: rgba(255,255,255,0.2); }
-
-    .pin-key.empty {
-      border: none;
-      background: none;
-    }
-
-    .pin-key.backspace {
-      border: none;
-      background: none;
-      font-size: 18px;
-    }
-
-    .pin-key.backspace svg {
-      width: 28px;
-      height: 28px;
-      fill: #fff;
-    }
-
-    .lock-error {
-      color: #e74c3c;
-      font-size: 13px;
-      min-height: 20px;
-      margin-top: 16px;
-    }
+    .pin-key.empty { border: none; background: none; }
+    .pin-key.backspace { border: none; background: none; }
+    .pin-key.backspace svg { width: 28px; height: 28px; fill: #fff; }
+    .lock-error { color: #e74c3c; font-size: 13px; min-height: 20px; margin-top: 16px; }
   </style>
 </head>
 <body>
+  <!-- Lock Screen -->
   <div id="lockScreen">
     <svg class="lock-icon" viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
     <div class="lock-title" id="lockTitle">Enter PIN</div>
     <div class="lock-subtitle" id="lockSubtitle">Enter 4-digit PIN to access</div>
     <div class="pin-dots">
-      <div class="pin-dot" id="dot0"></div>
-      <div class="pin-dot" id="dot1"></div>
-      <div class="pin-dot" id="dot2"></div>
-      <div class="pin-dot" id="dot3"></div>
+      <div class="pin-dot" id="dot0"></div><div class="pin-dot" id="dot1"></div>
+      <div class="pin-dot" id="dot2"></div><div class="pin-dot" id="dot3"></div>
     </div>
     <div class="pin-pad">
-      <button class="pin-key" data-key="1">1</button>
-      <button class="pin-key" data-key="2">2</button>
-      <button class="pin-key" data-key="3">3</button>
-      <button class="pin-key" data-key="4">4</button>
-      <button class="pin-key" data-key="5">5</button>
-      <button class="pin-key" data-key="6">6</button>
-      <button class="pin-key" data-key="7">7</button>
-      <button class="pin-key" data-key="8">8</button>
-      <button class="pin-key" data-key="9">9</button>
-      <button class="pin-key empty"></button>
-      <button class="pin-key" data-key="0">0</button>
+      <button class="pin-key" data-key="1">1</button><button class="pin-key" data-key="2">2</button><button class="pin-key" data-key="3">3</button>
+      <button class="pin-key" data-key="4">4</button><button class="pin-key" data-key="5">5</button><button class="pin-key" data-key="6">6</button>
+      <button class="pin-key" data-key="7">7</button><button class="pin-key" data-key="8">8</button><button class="pin-key" data-key="9">9</button>
+      <button class="pin-key empty"></button><button class="pin-key" data-key="0">0</button>
       <button class="pin-key backspace" data-key="back"><svg viewBox="0 0 24 24"><path d="M22 3H7c-.69 0-1.23.35-1.59.88L0 12l5.41 8.11c.36.53.9.89 1.59.89h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-3 12.59L17.59 17 14 13.41 10.41 17 9 15.59 12.59 12 9 8.41 10.41 7 14 10.59 17.59 7 19 8.41 15.41 12 19 15.59z"/></svg></button>
     </div>
     <div class="lock-error" id="lockError"></div>
   </div>
 
+  <!-- App Content -->
   <div id="appContent" style="display:none">
-  <div class="sticky-top">
-  <header>
-    <h1>GCH Contact Directory</h1>
-    <div class="search-wrap">
-      <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-      <input type="search" id="searchBar" placeholder="Search name or number..." autocomplete="off" autocorrect="off" spellcheck="false">
+    <div class="sticky-top">
+      <header>
+        <div class="header-row">
+          <h1>GCH Contact Directory</h1>
+          <button class="settings-btn" id="settingsBtn" title="Settings">
+            <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.49.49 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 00-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1115.6 12 3.6 3.6 0 0112 15.6z"/></svg>
+          </button>
+        </div>
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+          <input type="search" id="searchBar" placeholder="Search name or number..." autocomplete="off" autocorrect="off" spellcheck="false">
+        </div>
+      </header>
+      <nav id="tabs">
+        <button data-tab="all" class="active">All <span class="count-badge" id="count-all">0</span></button>
+        <button data-tab="gcuh">GCUH <span class="count-badge" id="count-gcuh">0</span></button>
+        <button data-tab="robina">Robina <span class="count-badge" id="count-robina">0</span></button>
+      </nav>
     </div>
-  </header>
+    <div class="sync-status" id="syncStatus">Connecting...</div>
+    <main id="contactList"></main>
+    <button id="addBtn" aria-label="Add contact">+</button>
 
-  <nav id="tabs">
-    <button data-tab="all" class="active">All <span class="count-badge" id="count-all">0</span></button>
-    <button data-tab="gcuh">GCUH <span class="count-badge" id="count-gcuh">0</span></button>
-    <button data-tab="robina">Robina <span class="count-badge" id="count-robina">0</span></button>
-  </nav>
-  </div>
+    <!-- Contact Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+      <div class="modal">
+        <h2 id="modalTitle">Add Contact</h2>
+        <form id="contactForm">
+          <div class="form-group"><label for="inputName">Name</label><input type="text" id="inputName" placeholder="e.g. ICU Registrar" required></div>
+          <div class="form-group"><label for="inputPhone">Phone Number</label><input type="tel" id="inputPhone" placeholder="e.g. 0756875914" required></div>
+          <div class="form-group"><label for="inputLocation">Hospital</label>
+            <select id="inputLocation"><option value="">Not specified</option><option value="GCUH">GCUH</option><option value="Robina">Robina</option></select>
+          </div>
+          <div class="modal-actions"><button type="button" class="btn-cancel" id="btnCancel">Cancel</button><button type="submit" class="btn-save">Save</button></div>
+          <button type="button" class="btn-delete" id="btnDelete" style="display:none">Delete Contact</button>
+        </form>
+      </div>
+    </div>
 
-  <main id="contactList"></main>
-
-  <button id="addBtn" aria-label="Add contact">+</button>
-
-  <div class="modal-overlay" id="modalOverlay">
-    <div class="modal">
-      <h2 id="modalTitle">Add Contact</h2>
-      <form id="contactForm">
-        <div class="form-group">
-          <label for="inputName">Name</label>
-          <input type="text" id="inputName" placeholder="e.g. ICU Registrar" required>
-        </div>
-        <div class="form-group">
-          <label for="inputPhone">Phone Number</label>
-          <input type="tel" id="inputPhone" placeholder="e.g. 0756875914" required>
-        </div>
-        <div class="form-group">
-          <label for="inputLocation">Hospital</label>
-          <select id="inputLocation">
-            <option value="">Not specified</option>
-            <option value="GCUH">GCUH</option>
-            <option value="Robina">Robina</option>
-          </select>
-        </div>
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settingsOverlay">
+      <div class="modal">
+        <h2>Settings</h2>
+        <div class="form-group"><label>Change Master PIN</label><input type="tel" id="newPinInput" placeholder="Enter new 4-digit PIN" maxlength="4" pattern="\d{4}"></div>
         <div class="modal-actions">
-          <button type="button" class="btn-cancel" id="btnCancel">Cancel</button>
-          <button type="submit" class="btn-save" id="btnSave">Save</button>
+          <button type="button" class="btn-cancel" id="settingsClose">Cancel</button>
+          <button type="button" class="btn-save" id="savePinBtn">Update PIN</button>
         </div>
-        <button type="button" class="btn-delete" id="btnDelete" style="display:none">Delete Contact</button>
-      </form>
+        <button type="button" class="btn-delete" id="resetDataBtn" style="margin-top:16px">Reset All Contacts to Default</button>
+      </div>
     </div>
+
+    <div id="toast">Copied!</div>
   </div>
 
-  <div id="toast">Copied!</div>
-  </div>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
 
   <script>
-    // Master PIN Lock System
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyBZDRiaNky41iQUZPOzYnUqvhtGzTUkb00",
+      authDomain: "gch-directory.firebaseapp.com",
+      databaseURL: "https://gch-directory-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "gch-directory",
+      storageBucket: "gch-directory.firebasestorage.app",
+      messagingSenderId: "713695392792",
+      appId: "1:713695392792:web:02aa76e518508b5aa03f6d"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+  </script>
+
+  <script>
+    // PIN Lock System — checks PIN from Firebase
     (function() {
-      // SHA-256 hash of master PIN + salt (PIN: 1234)
-      const MASTER_PIN_HASH = '05f46e62e397a44108e518d6ef133d08fa30eb7b7faf00891302fc679d525cf9';
+      const FALLBACK_HASH = '05f46e62e397a44108e518d6ef133d08fa30eb7b7faf00891302fc679d525cf9'; // 1234
       const lockScreen = document.getElementById('lockScreen');
       const appContent = document.getElementById('appContent');
       const lockError = document.getElementById('lockError');
       const dots = [0,1,2,3].map(i => document.getElementById('dot' + i));
-
       let pin = '';
+      let masterHash = FALLBACK_HASH;
+
+      // Try to load PIN from Firebase
+      db.ref('settings/pin_hash').once('value').then(snap => {
+        if (snap.val()) masterHash = snap.val();
+      }).catch(() => {});
 
       async function hashPin(p) {
         const enc = new TextEncoder().encode(p + 'gch_salt');
         const buf = await crypto.subtle.digest('SHA-256', enc);
         return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
       }
+      // Expose for settings
+      window.hashPin = hashPin;
 
       function updateDots() {
-        dots.forEach((d, i) => {
-          d.classList.toggle('filled', i < pin.length);
-          d.classList.remove('error');
-        });
+        dots.forEach((d, i) => { d.classList.toggle('filled', i < pin.length); d.classList.remove('error'); });
       }
-
       function showError(msg) {
         lockError.textContent = msg;
         dots.forEach(d => d.classList.add('error'));
-        setTimeout(() => {
-          pin = '';
-          updateDots();
-          lockError.textContent = '';
-        }, 800);
+        setTimeout(() => { pin = ''; updateDots(); lockError.textContent = ''; }, 800);
       }
-
       function unlock() {
         lockScreen.classList.add('hidden');
         appContent.style.display = '';
         window.dispatchEvent(new Event('app-unlocked'));
       }
-
       async function handlePinComplete() {
         const h = await hashPin(pin);
-        if (h === MASTER_PIN_HASH) {
-          unlock();
-        } else {
-          showError('Incorrect PIN');
-        }
+        if (h === masterHash) { unlock(); } else { showError('Incorrect PIN'); }
       }
 
       document.querySelector('.pin-pad').addEventListener('click', function(e) {
@@ -672,20 +239,11 @@
         if (!btn) return;
         const key = btn.dataset.key;
         if (!key) return;
-
-        if (key === 'back') {
-          pin = pin.slice(0, -1);
-          updateDots();
-          return;
-        }
-
+        if (key === 'back') { pin = pin.slice(0, -1); updateDots(); return; }
         if (pin.length >= 4) return;
         pin += key;
         updateDots();
-
-        if (pin.length === 4) {
-          setTimeout(handlePinComplete, 200);
-        }
+        if (pin.length === 4) setTimeout(handlePinComplete, 200);
       });
     })();
   </script>
@@ -695,16 +253,12 @@
     (function() {
       'use strict';
 
-      const STORAGE_KEY = 'gch_contacts';
-      const VERSION_KEY = 'gch_contacts_version';
-      const CURRENT_VERSION = 1;
-
       let contacts = [];
       let activeTab = 'all';
       let searchTerm = '';
       let editingId = null;
+      let firebaseReady = false;
 
-      // DOM refs
       const contactList = document.getElementById('contactList');
       const searchBar = document.getElementById('searchBar');
       const tabs = document.getElementById('tabs');
@@ -718,266 +272,182 @@
       const btnDelete = document.getElementById('btnDelete');
       const addBtn = document.getElementById('addBtn');
       const toast = document.getElementById('toast');
+      const syncStatus = document.getElementById('syncStatus');
 
-      // Load contacts
-      function loadContacts() {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        if (stored) {
-          contacts = JSON.parse(stored);
-        } else {
-          contacts = DEFAULT_CONTACTS.map(c => ({ ...c, isCustom: false }));
-          saveContacts();
-        }
+      // --- Firebase Sync ---
+      const contactsRef = db.ref('contacts');
+
+      function initFirebase() {
+        // Check if database has contacts, if not seed it
+        contactsRef.once('value').then(snap => {
+          if (!snap.exists()) {
+            // First time: seed Firebase with default contacts
+            const data = {};
+            DEFAULT_CONTACTS.forEach(c => { data[c.id] = c; });
+            contactsRef.set(data).then(() => {
+              syncStatus.textContent = 'Synced';
+              setTimeout(() => syncStatus.style.display = 'none', 2000);
+            });
+          }
+        });
+
+        // Listen for real-time changes
+        contactsRef.on('value', snap => {
+          firebaseReady = true;
+          const data = snap.val();
+          if (data) {
+            contacts = Object.values(data);
+          } else {
+            contacts = [];
+          }
+          render();
+          syncStatus.textContent = 'Synced';
+          setTimeout(() => syncStatus.style.display = 'none', 2000);
+        }, err => {
+          syncStatus.textContent = 'Offline mode';
+          // Fallback to localStorage
+          const stored = localStorage.getItem('gch_contacts');
+          if (stored) { contacts = JSON.parse(stored); }
+          else { contacts = DEFAULT_CONTACTS.map(c => ({ ...c })); }
+          render();
+        });
       }
 
-      function saveContacts() {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(contacts));
-        localStorage.setItem(VERSION_KEY, CURRENT_VERSION);
+      function saveContact(contact) {
+        contactsRef.child(contact.id).set(contact);
+        // Also save locally as cache
+        localStorage.setItem('gch_contacts', JSON.stringify(contacts));
       }
 
-      // Format phone for display
+      function deleteContact(id) {
+        contactsRef.child(id).remove();
+        contacts = contacts.filter(c => c.id !== id);
+        localStorage.setItem('gch_contacts', JSON.stringify(contacts));
+      }
+
+      // --- Format ---
       function formatPhone(phone) {
         if (!phone) return '';
         const d = phone.replace(/\s/g, '');
         if (d.startsWith('*')) return d;
-        if (d.startsWith('04') && d.length === 10) {
-          return d.slice(0,4) + ' ' + d.slice(4,7) + ' ' + d.slice(7);
-        }
-        if (d.startsWith('07') && d.length === 10) {
-          return d.slice(0,2) + ' ' + d.slice(2,6) + ' ' + d.slice(6);
-        }
-        if (d.startsWith('1300') || d.startsWith('1800')) {
-          return d.slice(0,4) + ' ' + d.slice(4,7) + ' ' + d.slice(7);
-        }
-        if (d.startsWith('13') && d.length <= 6) {
-          return d.slice(0,2) + ' ' + d.slice(2);
-        }
+        if (d.startsWith('04') && d.length === 10) return d.slice(0,4)+' '+d.slice(4,7)+' '+d.slice(7);
+        if (d.startsWith('07') && d.length === 10) return d.slice(0,2)+' '+d.slice(2,6)+' '+d.slice(6);
+        if (d.startsWith('1300') || d.startsWith('1800')) return d.slice(0,4)+' '+d.slice(4,7)+' '+d.slice(7);
+        if (d.startsWith('13') && d.length <= 6) return d.slice(0,2)+' '+d.slice(2);
         return d;
       }
 
-      // Filter contacts
       function getFilteredContacts() {
         let filtered = contacts;
-
-        if (activeTab === 'gcuh') {
-          filtered = filtered.filter(c => c.location === 'GCUH');
-        } else if (activeTab === 'robina') {
-          filtered = filtered.filter(c => c.location === 'Robina');
-        }
-
+        if (activeTab === 'gcuh') filtered = filtered.filter(c => c.location === 'GCUH');
+        else if (activeTab === 'robina') filtered = filtered.filter(c => c.location === 'Robina');
         if (searchTerm) {
           const q = searchTerm.toLowerCase();
-          filtered = filtered.filter(c =>
-            c.name.toLowerCase().includes(q) ||
-            c.phone.includes(q) ||
-            (c.extension && c.extension.includes(q))
-          );
+          filtered = filtered.filter(c => c.name.toLowerCase().includes(q) || c.phone.includes(q) || (c.extension && c.extension.includes(q)));
         }
-
         return filtered.sort((a, b) => a.name.localeCompare(b.name));
       }
 
-      // Update tab counts
       function updateCounts() {
-        const allCount = contacts.filter(c => {
-          if (!searchTerm) return true;
-          const q = searchTerm.toLowerCase();
-          return c.name.toLowerCase().includes(q) || c.phone.includes(q) || (c.extension && c.extension.includes(q));
-        }).length;
-        const gcuhCount = contacts.filter(c => {
-          if (c.location !== 'GCUH') return false;
-          if (!searchTerm) return true;
-          const q = searchTerm.toLowerCase();
-          return c.name.toLowerCase().includes(q) || c.phone.includes(q) || (c.extension && c.extension.includes(q));
-        }).length;
-        const robinaCount = contacts.filter(c => {
-          if (c.location !== 'Robina') return false;
-          if (!searchTerm) return true;
-          const q = searchTerm.toLowerCase();
-          return c.name.toLowerCase().includes(q) || c.phone.includes(q) || (c.extension && c.extension.includes(q));
-        }).length;
-
-        document.getElementById('count-all').textContent = allCount;
-        document.getElementById('count-gcuh').textContent = gcuhCount;
-        document.getElementById('count-robina').textContent = robinaCount;
+        const match = c => { if (!searchTerm) return true; const q = searchTerm.toLowerCase(); return c.name.toLowerCase().includes(q) || c.phone.includes(q) || (c.extension && c.extension.includes(q)); };
+        document.getElementById('count-all').textContent = contacts.filter(match).length;
+        document.getElementById('count-gcuh').textContent = contacts.filter(c => c.location === 'GCUH' && match(c)).length;
+        document.getElementById('count-robina').textContent = contacts.filter(c => c.location === 'Robina' && match(c)).length;
       }
 
-      // Render
       function render() {
         const filtered = getFilteredContacts();
         updateCounts();
-
         if (filtered.length === 0) {
-          contactList.innerHTML = `
-            <div class="empty-state">
-              <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-              <p>No contacts found</p>
-            </div>`;
+          contactList.innerHTML = '<div class="empty-state"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg><p>No contacts found</p></div>';
           return;
         }
-
-        let currentLetter = '';
-        let html = '';
-
+        let currentLetter = '', html = '';
         for (const c of filtered) {
           const letter = c.name[0].toUpperCase();
-          if (letter !== currentLetter) {
-            currentLetter = letter;
-            html += `<div class="section-header">${letter}</div>`;
-          }
-
+          if (letter !== currentLetter) { currentLetter = letter; html += `<div class="section-header">${letter}</div>`; }
           const badgeClass = c.location === 'GCUH' ? 'badge-gcuh' : c.location === 'Robina' ? 'badge-robina' : '';
           const badge = c.location ? `<span class="badge ${badgeClass}">${c.location}</span>` : '';
           const ext = c.extension && !c.phone.startsWith('*') ? `<span class="contact-ext">ext. ${c.extension}</span>` : '';
-
-          html += `
-            <div class="contact-card" data-id="${c.id}" data-phone="${c.phone}">
-              <div class="contact-info">
-                <div class="contact-name">${escapeHtml(c.name)}</div>
-                <div class="contact-phone">${formatPhone(c.phone)}${ext}</div>
-              </div>
-              <div class="contact-badges">
-                ${badge}
-                <div style="display:flex;align-items:center;gap:8px;">
-                  <svg class="copy-icon" viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
-                  <svg class="delete-icon" data-delete="${c.id}" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
-                </div>
-              </div>
-            </div>`;
+          html += `<div class="contact-card" data-id="${c.id}" data-phone="${c.phone}">
+            <div class="contact-info"><div class="contact-name">${escapeHtml(c.name)}</div><div class="contact-phone">${formatPhone(c.phone)}${ext}</div></div>
+            <div class="contact-badges">${badge}<div style="display:flex;align-items:center;gap:6px;">
+              <svg class="action-icon edit-icon" data-edit="${c.id}" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+              <svg class="action-icon delete-icon" data-delete="${c.id}" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+            </div></div></div>`;
         }
-
         contactList.innerHTML = html;
       }
 
-      function escapeHtml(str) {
-        const div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
-      }
+      function escapeHtml(str) { const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
 
-      // Copy to clipboard
       function copyPhone(phone) {
-        const formatted = phone.replace(/\s/g, '');
+        const f = phone.replace(/\s/g, '');
         if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(formatted).then(() => showToast('Copied ' + formatPhone(formatted)));
+          navigator.clipboard.writeText(f).then(() => showToast('Copied ' + formatPhone(f)));
         } else {
-          const ta = document.createElement('textarea');
-          ta.value = formatted;
-          ta.style.position = 'fixed';
-          ta.style.opacity = '0';
-          document.body.appendChild(ta);
-          ta.select();
-          document.execCommand('copy');
-          document.body.removeChild(ta);
-          showToast('Copied ' + formatPhone(formatted));
+          const ta = document.createElement('textarea'); ta.value = f; ta.style.cssText = 'position:fixed;opacity:0';
+          document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+          showToast('Copied ' + formatPhone(f));
         }
       }
 
       function showToast(msg) {
-        toast.textContent = msg || 'Copied!';
-        toast.classList.add('show');
-        clearTimeout(showToast._timer);
-        showToast._timer = setTimeout(() => toast.classList.remove('show'), 1500);
+        toast.textContent = msg || 'Copied!'; toast.classList.add('show');
+        clearTimeout(showToast._t); showToast._t = setTimeout(() => toast.classList.remove('show'), 1500);
       }
 
-      // Modal
       function openModal(id) {
         editingId = id || null;
         if (editingId) {
           const c = contacts.find(x => x.id === editingId);
           if (!c) return;
           modalTitle.textContent = 'Edit Contact';
-          inputName.value = c.name;
-          inputPhone.value = c.phone;
-          inputLocation.value = c.location || '';
+          inputName.value = c.name; inputPhone.value = c.phone; inputLocation.value = c.location || '';
           btnDelete.style.display = 'block';
         } else {
-          modalTitle.textContent = 'Add Contact';
-          contactForm.reset();
-          btnDelete.style.display = 'none';
+          modalTitle.textContent = 'Add Contact'; contactForm.reset(); btnDelete.style.display = 'none';
         }
         modalOverlay.classList.add('show');
         setTimeout(() => inputName.focus(), 300);
       }
+      function closeModal() { modalOverlay.classList.remove('show'); editingId = null; }
 
-      function closeModal() {
-        modalOverlay.classList.remove('show');
-        editingId = null;
-      }
-
-      // Events
-      searchBar.addEventListener('input', debounce(function() {
-        searchTerm = searchBar.value.trim();
-        render();
-      }, 150));
+      // --- Events ---
+      searchBar.addEventListener('input', debounce(function() { searchTerm = searchBar.value.trim(); render(); }, 150));
 
       tabs.addEventListener('click', function(e) {
         const btn = e.target.closest('button[data-tab]');
         if (!btn) return;
         tabs.querySelector('.active').classList.remove('active');
         btn.classList.add('active');
-        activeTab = btn.dataset.tab;
-        render();
+        activeTab = btn.dataset.tab; render();
       });
 
       contactList.addEventListener('click', function(e) {
-        // Handle delete button
+        const editBtn = e.target.closest('.edit-icon');
+        if (editBtn) { e.stopPropagation(); openModal(parseInt(editBtn.dataset.edit)); return; }
         const deleteBtn = e.target.closest('.delete-icon');
         if (deleteBtn) {
           e.stopPropagation();
           const id = parseInt(deleteBtn.dataset.delete);
           const contact = contacts.find(c => c.id === id);
           if (contact && confirm('Delete "' + contact.name + '"?')) {
-            contacts = contacts.filter(c => c.id !== id);
-            saveContacts();
-            render();
-            showToast('Contact deleted');
+            deleteContact(id); render(); showToast('Contact deleted');
           }
           return;
         }
-
         const card = e.target.closest('.contact-card');
-        if (!card) return;
-        copyPhone(card.dataset.phone);
-      });
-
-      // Long press to edit
-      let pressTimer = null;
-      let pressedCard = null;
-      contactList.addEventListener('touchstart', function(e) {
-        const card = e.target.closest('.contact-card');
-        if (!card || e.target.closest('.delete-icon')) return;
-        pressedCard = card;
-        pressTimer = setTimeout(() => {
-          openModal(parseInt(card.dataset.id));
-          pressedCard = null;
-        }, 600);
-      }, { passive: true });
-
-      contactList.addEventListener('touchend', function() {
-        clearTimeout(pressTimer);
-        pressedCard = null;
-      });
-
-      contactList.addEventListener('touchmove', function() {
-        clearTimeout(pressTimer);
-        pressedCard = null;
+        if (card) copyPhone(card.dataset.phone);
       });
 
       addBtn.addEventListener('click', () => openModal());
-
       btnCancel.addEventListener('click', closeModal);
-
-      modalOverlay.addEventListener('click', function(e) {
-        if (e.target === modalOverlay) closeModal();
-      });
+      modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) closeModal(); });
 
       btnDelete.addEventListener('click', function() {
         if (editingId && confirm('Delete this contact?')) {
-          contacts = contacts.filter(c => c.id !== editingId);
-          saveContacts();
-          closeModal();
-          render();
+          deleteContact(editingId); closeModal(); render();
         }
       });
 
@@ -986,57 +456,65 @@
         const name = inputName.value.trim();
         const phone = inputPhone.value.trim().replace(/\s/g, '');
         const location = inputLocation.value;
-
         if (!name || !phone) return;
 
-        // Calculate 5-digit extension (starts with 7) for GCUH numbers
         let extension = null;
-        if (phone.startsWith('075687') && phone.length === 10) {
-          extension = phone.slice(5); // e.g. 0756875083 -> 75083
-        }
+        if (phone.startsWith('075687') && phone.length === 10) extension = phone.slice(5);
 
         if (editingId) {
           const c = contacts.find(x => x.id === editingId);
-          if (c) {
-            c.name = name;
-            c.phone = phone;
-            c.extension = extension;
-            c.location = location;
-          }
+          if (c) { c.name = name; c.phone = phone; c.extension = extension; c.location = location; saveContact(c); }
         } else {
-          const maxId = contacts.reduce((max, c) => Math.max(max, c.id), 0);
-          contacts.push({
-            id: maxId + 1,
-            name,
-            phone,
-            extension,
-            location,
-            isCustom: true
-          });
+          const maxId = contacts.reduce((max, c) => Math.max(max, c.id || 0), 0);
+          const newContact = { id: maxId + 1, name, phone, extension, location };
+          contacts.push(newContact);
+          saveContact(newContact);
         }
-
-        saveContacts();
-        closeModal();
-        render();
+        closeModal(); render();
         showToast(editingId ? 'Contact updated' : 'Contact added');
       });
 
-      function debounce(fn, ms) {
-        let timer;
-        return function(...args) {
-          clearTimeout(timer);
-          timer = setTimeout(() => fn.apply(this, args), ms);
-        };
-      }
+      // --- Settings ---
+      const settingsBtn = document.getElementById('settingsBtn');
+      const settingsOverlay = document.getElementById('settingsOverlay');
+      const settingsClose = document.getElementById('settingsClose');
+      const savePinBtn = document.getElementById('savePinBtn');
+      const resetDataBtn = document.getElementById('resetDataBtn');
+      const newPinInput = document.getElementById('newPinInput');
+
+      settingsBtn.addEventListener('click', () => { settingsOverlay.classList.add('show'); });
+      settingsClose.addEventListener('click', () => { settingsOverlay.classList.remove('show'); });
+      settingsOverlay.addEventListener('click', e => { if (e.target === settingsOverlay) settingsOverlay.classList.remove('show'); });
+
+      savePinBtn.addEventListener('click', async function() {
+        const newPin = newPinInput.value.trim();
+        if (!/^\d{4}$/.test(newPin)) { alert('Please enter a 4-digit PIN'); return; }
+        const h = await window.hashPin(newPin);
+        db.ref('settings/pin_hash').set(h).then(() => {
+          showToast('PIN updated successfully');
+          newPinInput.value = '';
+          settingsOverlay.classList.remove('show');
+        }).catch(() => alert('Failed to update PIN. Check your connection.'));
+      });
+
+      resetDataBtn.addEventListener('click', function() {
+        if (confirm('Reset ALL contacts to the original defaults? This will delete any contacts you added.')) {
+          const data = {};
+          DEFAULT_CONTACTS.forEach(c => { data[c.id] = c; });
+          contactsRef.set(data).then(() => {
+            showToast('Contacts reset to defaults');
+            settingsOverlay.classList.remove('show');
+          });
+        }
+      });
+
+      function debounce(fn, ms) { let t; return function(...a) { clearTimeout(t); t = setTimeout(() => fn.apply(this, a), ms); }; }
 
       // Init
-      loadContacts();
-      render();
+      initFirebase();
 
       // Register service worker
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('service-worker.js').catch(() => {});
-      }
+      if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js').catch(() => {});
     })();
   </script>
 </body>
