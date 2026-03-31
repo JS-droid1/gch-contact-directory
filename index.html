@@ -216,6 +216,23 @@
       fill: #bbb;
     }
 
+    .delete-icon {
+      width: 18px;
+      height: 18px;
+      fill: #ccc;
+      cursor: pointer;
+      padding: 4px;
+      box-sizing: content-box;
+      border-radius: 6px;
+      transition: fill 0.15s, background 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .delete-icon:active {
+      fill: #c0392b;
+      background: #fde8e8;
+    }
+
     .section-header {
       font-size: 12px;
       font-weight: 600;
@@ -522,8 +539,8 @@
 <body>
   <div id="lockScreen">
     <svg class="lock-icon" viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
-    <div class="lock-title" id="lockTitle">Set Your PIN</div>
-    <div class="lock-subtitle" id="lockSubtitle">Choose a 4-digit PIN</div>
+    <div class="lock-title" id="lockTitle">Enter PIN</div>
+    <div class="lock-subtitle" id="lockSubtitle">Enter 4-digit PIN to access</div>
     <div class="pin-dots">
       <div class="pin-dot" id="dot0"></div>
       <div class="pin-dot" id="dot1"></div>
@@ -601,24 +618,16 @@
   </div>
 
   <script>
-    // PIN Lock System
+    // Master PIN Lock System
     (function() {
-      const PIN_KEY = 'gch_pin_hash';
+      // SHA-256 hash of master PIN + salt (PIN: 1234)
+      const MASTER_PIN_HASH = '05f46e62e397a44108e518d6ef133d08fa30eb7b7faf00891302fc679d525cf9';
       const lockScreen = document.getElementById('lockScreen');
       const appContent = document.getElementById('appContent');
-      const lockTitle = document.getElementById('lockTitle');
-      const lockSubtitle = document.getElementById('lockSubtitle');
       const lockError = document.getElementById('lockError');
       const dots = [0,1,2,3].map(i => document.getElementById('dot' + i));
 
       let pin = '';
-      let mode = localStorage.getItem(PIN_KEY) ? 'unlock' : 'setup';
-      let setupFirstPin = '';
-
-      if (mode === 'unlock') {
-        lockTitle.textContent = 'Enter PIN';
-        lockSubtitle.textContent = 'Enter your 4-digit PIN';
-      }
 
       async function hashPin(p) {
         const enc = new TextEncoder().encode(p + 'gch_salt');
@@ -650,32 +659,11 @@
       }
 
       async function handlePinComplete() {
-        if (mode === 'setup') {
-          if (!setupFirstPin) {
-            setupFirstPin = pin;
-            pin = '';
-            updateDots();
-            lockTitle.textContent = 'Confirm PIN';
-            lockSubtitle.textContent = 'Re-enter your 4-digit PIN';
-          } else {
-            if (pin === setupFirstPin) {
-              const h = await hashPin(pin);
-              localStorage.setItem(PIN_KEY, h);
-              unlock();
-            } else {
-              setupFirstPin = '';
-              lockTitle.textContent = 'Set Your PIN';
-              lockSubtitle.textContent = 'Choose a 4-digit PIN';
-              showError('PINs didn\'t match. Try again.');
-            }
-          }
+        const h = await hashPin(pin);
+        if (h === MASTER_PIN_HASH) {
+          unlock();
         } else {
-          const h = await hashPin(pin);
-          if (h === localStorage.getItem(PIN_KEY)) {
-            unlock();
-          } else {
-            showError('Incorrect PIN');
-          }
+          showError('Incorrect PIN');
         }
       }
 
@@ -850,7 +838,10 @@
               </div>
               <div class="contact-badges">
                 ${badge}
-                <svg class="copy-icon" viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <svg class="copy-icon" viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                  <svg class="delete-icon" data-delete="${c.id}" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                </div>
               </div>
             </div>`;
         }
@@ -930,31 +921,47 @@
       });
 
       contactList.addEventListener('click', function(e) {
+        // Handle delete button
+        const deleteBtn = e.target.closest('.delete-icon');
+        if (deleteBtn) {
+          e.stopPropagation();
+          const id = parseInt(deleteBtn.dataset.delete);
+          const contact = contacts.find(c => c.id === id);
+          if (contact && confirm('Delete "' + contact.name + '"?')) {
+            contacts = contacts.filter(c => c.id !== id);
+            saveContacts();
+            render();
+            showToast('Contact deleted');
+          }
+          return;
+        }
+
         const card = e.target.closest('.contact-card');
         if (!card) return;
         copyPhone(card.dataset.phone);
       });
 
-      contactList.addEventListener('long-press', function(e) {
-        // Not used for now
-      });
-
       // Long press to edit
       let pressTimer = null;
+      let pressedCard = null;
       contactList.addEventListener('touchstart', function(e) {
         const card = e.target.closest('.contact-card');
-        if (!card) return;
+        if (!card || e.target.closest('.delete-icon')) return;
+        pressedCard = card;
         pressTimer = setTimeout(() => {
           openModal(parseInt(card.dataset.id));
+          pressedCard = null;
         }, 600);
       }, { passive: true });
 
       contactList.addEventListener('touchend', function() {
         clearTimeout(pressTimer);
+        pressedCard = null;
       });
 
       contactList.addEventListener('touchmove', function() {
         clearTimeout(pressTimer);
+        pressedCard = null;
       });
 
       addBtn.addEventListener('click', () => openModal());
@@ -982,12 +989,10 @@
 
         if (!name || !phone) return;
 
-        // Calculate extension
+        // Calculate 5-digit extension (starts with 7) for GCUH numbers
         let extension = null;
         if (phone.startsWith('075687') && phone.length === 10) {
-          extension = phone.slice(-4);
-        } else if (phone.startsWith('075668') && phone.length === 10) {
-          extension = phone.slice(-4);
+          extension = phone.slice(5); // e.g. 0756875083 -> 75083
         }
 
         if (editingId) {
