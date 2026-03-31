@@ -383,7 +383,7 @@
       const contactsRef = db.ref('contacts');
 
       function initFirebase() {
-        // Check if database has contacts, if not seed it
+        // Check if database has contacts, if not seed it; also migrate tags
         contactsRef.once('value').then(snap => {
           if (!snap.exists()) {
             // First time: seed Firebase with default contacts
@@ -394,6 +394,28 @@
               setTimeout(() => syncStatus.style.display = 'none', 2000);
               createBackup('initial-seed');
             });
+          } else {
+            // Migrate: add specialty/position tags to existing contacts that lack them
+            const existing = snap.val();
+            const firstEntry = Object.values(existing)[0];
+            if (firstEntry && !firstEntry.specialty) {
+              // Build lookup from DEFAULT_CONTACTS by id
+              const lookup = {};
+              DEFAULT_CONTACTS.forEach(c => { lookup[c.id] = c; });
+              const updates = {};
+              Object.keys(existing).forEach(key => {
+                const def = lookup[key] || lookup[existing[key].id];
+                if (def && def.specialty) {
+                  updates[key + '/specialty'] = def.specialty;
+                  updates[key + '/position'] = def.position;
+                }
+              });
+              if (Object.keys(updates).length > 0) {
+                contactsRef.update(updates).then(() => {
+                  createBackup('tag-migration');
+                });
+              }
+            }
           }
         });
 
