@@ -31,7 +31,7 @@
     #searchBar { width: 100%; padding: 10px 12px 10px 36px; border: none; border-radius: 10px; font-size: 16px; background: #fff; color: var(--text); outline: none; -webkit-appearance: none; }
     #searchBar::placeholder { color: #999; }
     nav { display: flex; background: #fff; border-bottom: 1px solid var(--border); }
-    nav button { flex: 1; padding: 12px 0; border: none; background: none; font-size: 14px; font-weight: 500; color: var(--text-secondary); cursor: pointer; position: relative; transition: color 0.2s; }
+    nav button { flex: 1; padding: 12px 0; border: none; background: none; font-size: 13px; font-weight: 500; color: var(--text-secondary); cursor: pointer; position: relative; transition: color 0.2s; }
     nav button.active { color: var(--primary); font-weight: 600; }
     nav button.active::after { content: ''; position: absolute; bottom: 0; left: 20%; right: 20%; height: 3px; background: var(--primary); border-radius: 3px 3px 0 0; }
     .count-badge { display: inline-block; background: var(--bg); color: var(--text-secondary); font-size: 11px; padding: 1px 6px; border-radius: 10px; margin-left: 4px; font-weight: 400; }
@@ -52,6 +52,17 @@
     .delete-icon:active { fill: #c0392b; background: #fde8e8; }
     .contact-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
     .contact-tag { font-size: 10px; background: #f0f2f5; color: var(--text-secondary); padding: 2px 7px; border-radius: 4px; font-weight: 500; }
+    .dept-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .dept-card { background: var(--card); border-radius: 12px; padding: 14px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); cursor: pointer; -webkit-tap-highlight-color: transparent; transition: transform 0.1s; display: flex; justify-content: space-between; align-items: center; }
+    .dept-card:active { transform: scale(0.97); }
+    .dept-card-name { font-size: 13px; font-weight: 500; color: var(--text); }
+    .dept-card-count { font-size: 11px; color: var(--text-secondary); background: var(--bg); padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+    .dept-back { display: flex; align-items: center; gap: 6px; padding: 10px 4px; cursor: pointer; color: var(--primary-light); font-size: 14px; font-weight: 500; -webkit-tap-highlight-color: transparent; border: none; background: none; margin-bottom: 4px; }
+    .dept-back svg { width: 18px; height: 18px; fill: var(--primary-light); }
+    .dept-title { font-size: 18px; font-weight: 600; color: var(--text); margin-bottom: 12px; }
+    .role-group-header { font-size: 13px; font-weight: 600; color: var(--primary); padding: 14px 4px 6px; border-bottom: 1px solid var(--border); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.4px; }
+    .dept-add-btn { display: flex; align-items: center; justify-content: center; gap: 6px; background: var(--card); border-radius: 12px; padding: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); cursor: pointer; border: 2px dashed var(--border); color: var(--primary-light); font-size: 14px; font-weight: 500; margin-top: 8px; -webkit-tap-highlight-color: transparent; }
+    .dept-add-btn:active { background: #e8f0fe; }
     .section-header { font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; padding: 12px 4px 6px; }
     .empty-state { text-align: center; padding: 48px 24px; color: var(--text-secondary); }
     .empty-state svg { width: 48px; height: 48px; fill: #ccc; margin-bottom: 12px; }
@@ -137,6 +148,7 @@
         <button data-tab="all" class="active">All <span class="count-badge" id="count-all">0</span></button>
         <button data-tab="gcuh">GCUH <span class="count-badge" id="count-gcuh">0</span></button>
         <button data-tab="robina">Robina <span class="count-badge" id="count-robina">0</span></button>
+        <button data-tab="depts">Depts</button>
       </nav>
     </div>
     <div class="sync-status" id="syncStatus">Connecting...</div>
@@ -363,6 +375,7 @@
       let searchTerm = '';
       let editingId = null;
       let firebaseReady = false;
+      let selectedDept = null; // For specialty drill-down
 
       const contactList = document.getElementById('contactList');
       const searchBar = document.getElementById('searchBar');
@@ -488,7 +501,94 @@
         document.getElementById('count-robina').textContent = contacts.filter(c => c.location === 'Robina' && match(c)).length;
       }
 
+      // Role grouping for specialty drill-down
+      const ROLE_GROUPS = {
+        'Medical Officers': ['Consultant', 'Fellow', 'Registrar', 'Resident (RMO)', 'Intern'],
+        'Nursing Staff': ['Nurse Unit Manager', 'Nursing Team Leader', 'Clinical Nurse', 'Registered Nurse', 'Enrolled Nurse'],
+        'Allied Health': ['Allied Health Professional'],
+        'Administration': ['Administration', 'Ward Clerk'],
+        'Other': ['Department', 'Service / Helpline', 'MISC']
+      };
+
+      function getRoleGroup(position) {
+        if (!position) return 'Other';
+        for (const [group, positions] of Object.entries(ROLE_GROUPS)) {
+          if (positions.includes(position)) return group;
+        }
+        return 'Other';
+      }
+
+      function renderContactCard(c) {
+        const badgeClass = c.location === 'GCUH' ? 'badge-gcuh' : c.location === 'Robina' ? 'badge-robina' : '';
+        const badge = c.location ? `<span class="badge ${badgeClass}">${c.location}</span>` : '';
+        const ext = c.extension && !c.phone.startsWith('*') ? `<span class="contact-ext">ext. ${c.extension}</span>` : '';
+        const tags = [c.specialty, c.position].filter(Boolean);
+        const tagHtml = tags.length ? `<div class="contact-tags">${tags.map(t => `<span class="contact-tag">${escapeHtml(t)}</span>`).join('')}</div>` : '';
+        return `<div class="contact-card" data-id="${c.id}" data-phone="${c.phone}">
+          <div class="contact-info"><div class="contact-name">${escapeHtml(c.name)}</div><div class="contact-phone">${formatPhone(c.phone)}${ext}</div>${tagHtml}</div>
+          <div class="contact-badges">${badge}<div style="display:flex;align-items:center;gap:6px;">
+            <svg class="action-icon edit-icon" data-edit="${c.id}" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+            <svg class="action-icon delete-icon" data-delete="${c.id}" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+          </div></div></div>`;
+      }
+
+      function renderDeptDirectory() {
+        // Build department counts
+        const deptCounts = {};
+        contacts.forEach(c => {
+          const dept = c.specialty || 'Uncategorised';
+          deptCounts[dept] = (deptCounts[dept] || 0) + 1;
+        });
+        const sorted = Object.entries(deptCounts).sort((a, b) => a[0].localeCompare(b[0]));
+        let html = '<div class="dept-grid">';
+        for (const [dept, count] of sorted) {
+          html += `<div class="dept-card" data-dept="${escapeHtml(dept)}"><span class="dept-card-name">${escapeHtml(dept)}</span><span class="dept-card-count">${count}</span></div>`;
+        }
+        html += '</div>';
+        contactList.innerHTML = html;
+      }
+
+      function renderDeptDetail(dept) {
+        const deptContacts = contacts.filter(c => (c.specialty || 'Uncategorised') === dept).sort((a, b) => a.name.localeCompare(b.name));
+
+        // Group by role
+        const grouped = {};
+        for (const group of Object.keys(ROLE_GROUPS)) { grouped[group] = []; }
+        deptContacts.forEach(c => {
+          const group = getRoleGroup(c.position);
+          grouped[group].push(c);
+        });
+
+        let html = `<button class="dept-back" id="deptBack"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg> All Departments</button>`;
+        html += `<div class="dept-title">${escapeHtml(dept)}</div>`;
+
+        let hasContacts = false;
+        for (const [group, groupContacts] of Object.entries(grouped)) {
+          if (groupContacts.length === 0) continue;
+          hasContacts = true;
+          html += `<div class="role-group-header">${group} (${groupContacts.length})</div>`;
+          groupContacts.forEach(c => { html += renderContactCard(c); });
+        }
+
+        if (!hasContacts) {
+          html += '<div class="empty-state"><p>No contacts in this department</p></div>';
+        }
+
+        html += `<div class="dept-add-btn" data-dept-add="${escapeHtml(dept)}">+ Add contact to ${escapeHtml(dept)}</div>`;
+        contactList.innerHTML = html;
+      }
+
       function render() {
+        if (activeTab === 'depts') {
+          if (selectedDept) {
+            renderDeptDetail(selectedDept);
+          } else {
+            renderDeptDirectory();
+          }
+          updateCounts();
+          return;
+        }
+
         const filtered = getFilteredContacts();
         updateCounts();
         if (filtered.length === 0) {
@@ -499,17 +599,7 @@
         for (const c of filtered) {
           const letter = c.name[0].toUpperCase();
           if (letter !== currentLetter) { currentLetter = letter; html += `<div class="section-header">${letter}</div>`; }
-          const badgeClass = c.location === 'GCUH' ? 'badge-gcuh' : c.location === 'Robina' ? 'badge-robina' : '';
-          const badge = c.location ? `<span class="badge ${badgeClass}">${c.location}</span>` : '';
-          const ext = c.extension && !c.phone.startsWith('*') ? `<span class="contact-ext">ext. ${c.extension}</span>` : '';
-          const tags = [c.specialty, c.position].filter(Boolean);
-          const tagHtml = tags.length ? `<div class="contact-tags">${tags.map(t => `<span class="contact-tag">${escapeHtml(t)}</span>`).join('')}</div>` : '';
-          html += `<div class="contact-card" data-id="${c.id}" data-phone="${c.phone}">
-            <div class="contact-info"><div class="contact-name">${escapeHtml(c.name)}</div><div class="contact-phone">${formatPhone(c.phone)}${ext}</div>${tagHtml}</div>
-            <div class="contact-badges">${badge}<div style="display:flex;align-items:center;gap:6px;">
-              <svg class="action-icon edit-icon" data-edit="${c.id}" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
-              <svg class="action-icon delete-icon" data-delete="${c.id}" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
-            </div></div></div>`;
+          html += renderContactCard(c);
         }
         contactList.innerHTML = html;
       }
@@ -563,10 +653,27 @@
         if (!btn) return;
         tabs.querySelector('.active').classList.remove('active');
         btn.classList.add('active');
-        activeTab = btn.dataset.tab; render();
+        activeTab = btn.dataset.tab;
+        selectedDept = null;
+        addBtn.style.display = (activeTab === 'depts') ? 'none' : 'flex';
+        render();
       });
 
       contactList.addEventListener('click', function(e) {
+        // Dept directory: click a department card
+        const deptCard = e.target.closest('.dept-card');
+        if (deptCard) { selectedDept = deptCard.dataset.dept; render(); return; }
+        // Dept detail: back button
+        const deptBack = e.target.closest('#deptBack');
+        if (deptBack) { selectedDept = null; render(); return; }
+        // Dept detail: add contact to this department
+        const deptAdd = e.target.closest('.dept-add-btn');
+        if (deptAdd) {
+          openModal();
+          // Pre-fill the specialty dropdown
+          inputSpecialty.value = deptAdd.dataset.deptAdd;
+          return;
+        }
         const editBtn = e.target.closest('.edit-icon');
         if (editBtn) { e.stopPropagation(); openModal(parseInt(editBtn.dataset.edit)); return; }
         const deleteBtn = e.target.closest('.delete-icon');
