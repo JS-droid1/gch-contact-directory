@@ -161,12 +161,13 @@
     <div class="modal-overlay" id="settingsOverlay">
       <div class="modal">
         <h2>Settings</h2>
-        <div class="form-group"><label>Change Master PIN</label><input type="tel" id="newPinInput" placeholder="Enter new 4-digit PIN" maxlength="4" pattern="\d{4}"></div>
+        <div class="form-group"><label>Change Master PIN</label><input type="tel" id="currentPinInput" placeholder="Enter current PIN" maxlength="4" pattern="\d{4}" style="margin-bottom:8px"><input type="tel" id="newPinInput" placeholder="Enter new 4-digit PIN" maxlength="4" pattern="\d{4}"></div>
         <div class="modal-actions">
           <button type="button" class="btn-cancel" id="settingsClose">Cancel</button>
           <button type="button" class="btn-save" id="savePinBtn">Update PIN</button>
         </div>
-        <button type="button" class="btn-delete" id="resetDataBtn" style="margin-top:16px">Reset All Contacts to Default</button>
+        <button type="button" class="btn-delete" id="resetDataBtn" style="margin-top:16px">Reset My Contacts to Default</button>
+        <p style="font-size:11px;color:#999;text-align:center;margin-top:6px">Only resets your local view — does not affect other users</p>
       </div>
     </div>
 
@@ -487,24 +488,31 @@
       settingsOverlay.addEventListener('click', e => { if (e.target === settingsOverlay) settingsOverlay.classList.remove('show'); });
 
       savePinBtn.addEventListener('click', async function() {
+        const currentPin = document.getElementById('currentPinInput').value.trim();
         const newPin = newPinInput.value.trim();
-        if (!/^\d{4}$/.test(newPin)) { alert('Please enter a 4-digit PIN'); return; }
+        if (!/^\d{4}$/.test(currentPin)) { alert('Please enter your current 4-digit PIN'); return; }
+        if (!/^\d{4}$/.test(newPin)) { alert('Please enter a new 4-digit PIN'); return; }
+        // Verify current PIN against Firebase
+        const snap = await db.ref('settings/pin_hash').once('value');
+        const storedHash = snap.val() || '05f46e62e397a44108e518d6ef133d08fa30eb7b7faf00891302fc679d525cf9';
+        const currentHash = await window.hashPin(currentPin);
+        if (currentHash !== storedHash) { alert('Current PIN is incorrect'); return; }
         const h = await window.hashPin(newPin);
         db.ref('settings/pin_hash').set(h).then(() => {
           showToast('PIN updated successfully');
+          document.getElementById('currentPinInput').value = '';
           newPinInput.value = '';
           settingsOverlay.classList.remove('show');
         }).catch(() => alert('Failed to update PIN. Check your connection.'));
       });
 
       resetDataBtn.addEventListener('click', function() {
-        if (confirm('Reset ALL contacts to the original defaults? This will delete any contacts you added.')) {
-          const data = {};
-          DEFAULT_CONTACTS.forEach(c => { data[c.id] = c; });
-          contactsRef.set(data).then(() => {
-            showToast('Contacts reset to defaults');
-            settingsOverlay.classList.remove('show');
-          });
+        if (confirm('Reset your local view to the original defaults? This only affects your device — other users are not affected.')) {
+          contacts = DEFAULT_CONTACTS.map(c => ({ ...c }));
+          localStorage.setItem('gch_contacts', JSON.stringify(contacts));
+          render();
+          showToast('Local contacts reset to defaults');
+          settingsOverlay.classList.remove('show');
         }
       });
 
