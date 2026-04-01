@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gch-contacts-v9';
+const CACHE_NAME = 'gch-contacts-v10';
 const ASSETS = [
   './',
   './index.html',

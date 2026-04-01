@@ -650,8 +650,8 @@
       const toggleFreeInput = document.getElementById('toggleFreeInput');
       const toggleExtInput = document.getElementById('toggleExtInput');
 
-      const PREFIXES = { 'GCUH': '07 5687 ', 'Robina': '07 5668 ' };
-      const RAW_PREFIXES = { 'GCUH': '075687', 'Robina': '075668' };
+      const PREFIXES = { 'GCUH': '07 568', 'Robina': '07 5668 ' };
+      const RAW_PREFIXES = { 'GCUH': '07568', 'Robina': '075668' };
 
       function updatePhoneMode() {
         const loc = inputLocation.value;
@@ -660,8 +660,8 @@
           phoneExtMode.style.display = 'block';
           phoneFreeMode.style.display = 'none';
           phonePrefix.textContent = PREFIXES[loc];
-          inputPhoneExt.maxLength = loc === 'GCUH' ? 4 : 4;
-          inputPhoneExt.placeholder = loc === 'GCUH' ? '4 digits (e.g. 5914)' : '4 digits (e.g. 6200)';
+          inputPhoneExt.maxLength = loc === 'GCUH' ? 5 : 4;
+          inputPhoneExt.placeholder = loc === 'GCUH' ? '5 digits (e.g. 75914)' : '4 digits (e.g. 6200)';
         } else {
           phoneExtMode.style.display = 'none';
           phoneFreeMode.style.display = 'block';
