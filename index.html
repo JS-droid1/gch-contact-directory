@@ -127,6 +127,7 @@
       <button class="pin-key backspace" data-key="back"><svg viewBox="0 0 24 24"><path d="M22 3H7c-.69 0-1.23.35-1.59.88L0 12l5.41 8.11c.36.53.9.89 1.59.89h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-3 12.59L17.59 17 14 13.41 10.41 17 9 15.59 12.59 12 9 8.41 10.41 7 14 10.59 17.59 7 19 8.41 15.41 12 19 15.59z"/></svg></button>
     </div>
     <div class="lock-error" id="lockError"></div>
+    <div style="color:rgba(255,255,255,0.35);font-size:11px;margin-top:24px;max-width:280px;text-align:center;line-height:1.4">Numbers in this directory are user-contributed and may not always be accurate. If you find an incorrect number, please update it where possible.</div>
   </div>
 
   <!-- App Content -->
@@ -164,9 +165,23 @@
         </div>
         <form id="contactForm">
           <div class="form-group"><label for="inputName">Name</label><input type="text" id="inputName" placeholder="e.g. ICU Registrar DECT" required></div>
-          <div class="form-group"><label for="inputPhone">Phone Number</label><input type="tel" id="inputPhone" placeholder="e.g. 0756875914" required></div>
-          <div class="form-group"><label for="inputLocation">Hospital</label>
-            <select id="inputLocation"><option value="">Not specified</option><option value="GCUH">GCUH</option><option value="Robina">Robina</option></select>
+          <div class="form-group"><label for="inputLocation">Hospital <span style="color:#c0392b">*select first</span></label>
+            <select id="inputLocation"><option value="">Select hospital...</option><option value="GCUH">GCUH</option><option value="Robina">Robina</option><option value="">Other / External</option></select>
+          </div>
+          <div class="form-group" id="phoneGroup" style="display:none">
+            <label for="inputPhone">Phone Number</label>
+            <div id="phoneExtMode" style="display:none">
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+                <span id="phonePrefix" style="font-size:15px;font-weight:500;color:var(--primary);white-space:nowrap"></span>
+                <input type="tel" id="inputPhoneExt" placeholder="Extension digits" style="flex:1" maxlength="5">
+              </div>
+              <p style="font-size:11px;color:#999;margin-bottom:6px">Enter the extension number only</p>
+              <button type="button" id="toggleFreeInput" style="font-size:12px;color:var(--primary-light);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline">Enter a different number instead</button>
+            </div>
+            <div id="phoneFreeMode" style="display:none">
+              <input type="tel" id="inputPhone" placeholder="e.g. 1300 000 000 or 04XX XXX XXX">
+              <button type="button" id="toggleExtInput" style="font-size:12px;color:var(--primary-light);background:none;border:none;cursor:pointer;padding:0;margin-top:6px;text-decoration:underline">Use hospital extension instead</button>
+            </div>
           </div>
           <div class="form-group"><label for="inputSpecialty">Specialty / Department</label>
             <select id="inputSpecialty">
@@ -384,7 +399,6 @@
       const contactForm = document.getElementById('contactForm');
       const modalTitle = document.getElementById('modalTitle');
       const inputName = document.getElementById('inputName');
-      const inputPhone = document.getElementById('inputPhone');
       const inputLocation = document.getElementById('inputLocation');
       const btnCancel = document.getElementById('btnCancel');
       const btnDelete = document.getElementById('btnDelete');
@@ -408,26 +422,28 @@
               createBackup('initial-seed');
             });
           } else {
-            // Migrate: add specialty/position tags to existing contacts that lack them
+            // Migrate: add specialty/position tags and Robina extensions
             const existing = snap.val();
-            const firstEntry = Object.values(existing)[0];
-            if (firstEntry && !firstEntry.specialty) {
-              // Build lookup from DEFAULT_CONTACTS by id
-              const lookup = {};
-              DEFAULT_CONTACTS.forEach(c => { lookup[c.id] = c; });
-              const updates = {};
-              Object.keys(existing).forEach(key => {
-                const def = lookup[key] || lookup[existing[key].id];
-                if (def && def.specialty) {
-                  updates[key + '/specialty'] = def.specialty;
-                  updates[key + '/position'] = def.position;
-                }
-              });
-              if (Object.keys(updates).length > 0) {
-                contactsRef.update(updates).then(() => {
-                  createBackup('tag-migration');
-                });
+            const lookup = {};
+            DEFAULT_CONTACTS.forEach(c => { lookup[c.id] = c; });
+            const updates = {};
+            Object.keys(existing).forEach(key => {
+              const entry = existing[key];
+              const def = lookup[key] || lookup[entry.id];
+              // Add tags if missing
+              if (def && def.specialty && !entry.specialty) {
+                updates[key + '/specialty'] = def.specialty;
+                updates[key + '/position'] = def.position;
               }
+              // Add Robina extensions if missing
+              if (entry.phone && entry.phone.startsWith('075668') && entry.phone.length === 10 && !entry.extension) {
+                updates[key + '/extension'] = entry.phone.slice(6);
+              }
+            });
+            if (Object.keys(updates).length > 0) {
+              contactsRef.update(updates).then(() => {
+                createBackup('data-migration');
+              });
             }
           }
         });
@@ -625,6 +641,63 @@
       const inputSpecialty = document.getElementById('inputSpecialty');
       const inputPosition = document.getElementById('inputPosition');
       const privacyNotice = document.getElementById('privacyNotice');
+      const phoneGroup = document.getElementById('phoneGroup');
+      const phoneExtMode = document.getElementById('phoneExtMode');
+      const phoneFreeMode = document.getElementById('phoneFreeMode');
+      const phonePrefix = document.getElementById('phonePrefix');
+      const inputPhoneExt = document.getElementById('inputPhoneExt');
+      const inputPhone = document.getElementById('inputPhone');
+      const toggleFreeInput = document.getElementById('toggleFreeInput');
+      const toggleExtInput = document.getElementById('toggleExtInput');
+
+      const PREFIXES = { 'GCUH': '07 5687 ', 'Robina': '07 5668 ' };
+      const RAW_PREFIXES = { 'GCUH': '075687', 'Robina': '075668' };
+
+      function updatePhoneMode() {
+        const loc = inputLocation.value;
+        phoneGroup.style.display = 'block';
+        if (loc === 'GCUH' || loc === 'Robina') {
+          phoneExtMode.style.display = 'block';
+          phoneFreeMode.style.display = 'none';
+          phonePrefix.textContent = PREFIXES[loc];
+          inputPhoneExt.maxLength = loc === 'GCUH' ? 4 : 4;
+          inputPhoneExt.placeholder = loc === 'GCUH' ? '4 digits (e.g. 5914)' : '4 digits (e.g. 6200)';
+        } else {
+          phoneExtMode.style.display = 'none';
+          phoneFreeMode.style.display = 'block';
+        }
+      }
+
+      toggleFreeInput.addEventListener('click', function() {
+        phoneExtMode.style.display = 'none';
+        phoneFreeMode.style.display = 'block';
+        inputPhone.value = '';
+        inputPhone.focus();
+      });
+      toggleExtInput.addEventListener('click', function() {
+        const loc = inputLocation.value;
+        if (loc === 'GCUH' || loc === 'Robina') {
+          phoneExtMode.style.display = 'block';
+          phoneFreeMode.style.display = 'none';
+          inputPhoneExt.focus();
+        }
+      });
+
+      inputLocation.addEventListener('change', function() {
+        updatePhoneMode();
+        inputPhoneExt.value = '';
+        inputPhone.value = '';
+      });
+
+      function getPhoneFromForm() {
+        // If extension mode is visible and has a value, use prefix + ext
+        if (phoneExtMode.style.display !== 'none' && inputPhoneExt.value.trim()) {
+          const loc = inputLocation.value;
+          return RAW_PREFIXES[loc] + inputPhoneExt.value.trim();
+        }
+        // Otherwise use free input
+        return inputPhone.value.trim().replace(/\s/g, '');
+      }
 
       function openModal(id) {
         editingId = id || null;
@@ -632,13 +705,33 @@
           const c = contacts.find(x => x.id === editingId);
           if (!c) return;
           modalTitle.textContent = 'Edit Contact';
-          inputName.value = c.name; inputPhone.value = c.phone; inputLocation.value = c.location || '';
+          inputName.value = c.name; inputLocation.value = c.location || '';
           inputSpecialty.value = c.specialty || ''; inputPosition.value = c.position || '';
           btnDelete.style.display = 'block';
           privacyNotice.style.display = 'none';
+          // Set phone field based on location
+          phoneGroup.style.display = 'block';
+          const loc = c.location;
+          if ((loc === 'GCUH' || loc === 'Robina') && c.phone.startsWith(RAW_PREFIXES[loc])) {
+            phoneExtMode.style.display = 'block';
+            phoneFreeMode.style.display = 'none';
+            phonePrefix.textContent = PREFIXES[loc];
+            inputPhoneExt.value = c.phone.slice(RAW_PREFIXES[loc].length);
+            inputPhone.value = '';
+          } else {
+            phoneExtMode.style.display = 'none';
+            phoneFreeMode.style.display = 'block';
+            inputPhone.value = c.phone;
+            inputPhoneExt.value = '';
+          }
         } else {
           modalTitle.textContent = 'Add Contact'; contactForm.reset(); btnDelete.style.display = 'none';
           privacyNotice.style.display = 'block';
+          phoneGroup.style.display = 'none';
+          phoneExtMode.style.display = 'none';
+          phoneFreeMode.style.display = 'none';
+          inputPhoneExt.value = '';
+          inputPhone.value = '';
         }
         modalOverlay.classList.add('show');
         setTimeout(() => inputName.focus(), 300);
@@ -703,14 +796,15 @@
       contactForm.addEventListener('submit', function(e) {
         e.preventDefault();
         const name = inputName.value.trim();
-        const phone = inputPhone.value.trim().replace(/\s/g, '');
+        const phone = getPhoneFromForm();
         const location = inputLocation.value;
         const specialty = inputSpecialty.value;
         const position = inputPosition.value;
-        if (!name || !phone) return;
+        if (!name || !phone) { showToast('Please enter a name and phone number'); return; }
 
         let extension = null;
         if (phone.startsWith('075687') && phone.length === 10) extension = phone.slice(5);
+        else if (phone.startsWith('075668') && phone.length === 10) extension = phone.slice(6);
 
         if (editingId) {
           const c = contacts.find(x => x.id === editingId);
