@@ -31,7 +31,7 @@
     #searchBar { width: 100%; padding: 10px 12px 10px 36px; border: none; border-radius: 10px; font-size: 16px; background: #fff; color: var(--text); outline: none; -webkit-appearance: none; }
     #searchBar::placeholder { color: #999; }
     nav { display: flex; background: #fff; border-bottom: 1px solid var(--border); }
-    nav button { flex: 1; padding: 12px 0; border: none; background: none; font-size: 13px; font-weight: 500; color: var(--text-secondary); cursor: pointer; position: relative; transition: color 0.2s; }
+    nav button { flex: 1; padding: 12px 0; border: none; background: none; font-size: 12px; font-weight: 500; color: var(--text-secondary); cursor: pointer; position: relative; transition: color 0.2s; }
     nav button.active { color: var(--primary); font-weight: 600; }
     nav button.active::after { content: ''; position: absolute; bottom: 0; left: 20%; right: 20%; height: 3px; background: var(--primary); border-radius: 3px 3px 0 0; }
     .count-badge { display: inline-block; background: var(--bg); color: var(--text-secondary); font-size: 11px; padding: 1px 6px; border-radius: 10px; margin-left: 4px; font-weight: 400; }
@@ -63,6 +63,27 @@
     .role-group-header { font-size: 13px; font-weight: 600; color: var(--primary); padding: 14px 4px 6px; border-bottom: 1px solid var(--border); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.4px; }
     .dept-add-btn { display: flex; align-items: center; justify-content: center; gap: 6px; background: var(--card); border-radius: 12px; padding: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); cursor: pointer; border: 2px dashed var(--border); color: var(--primary-light); font-size: 14px; font-weight: 500; margin-top: 8px; -webkit-tap-highlight-color: transparent; }
     .dept-add-btn:active { background: #e8f0fe; }
+    /* Login cards & voting */
+    .login-category-header { font-size: 12px; font-weight: 600; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; padding: 14px 4px 8px; }
+    .login-category-header:first-child { padding-top: 4px; }
+    .login-card { background: var(--card); border-radius: 12px; padding: 14px 16px; margin-bottom: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+    .login-field { display: flex; align-items: center; gap: 8px; padding: 4px 0; }
+    .login-label { font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; width: 72px; flex-shrink: 0; }
+    .login-field-value { font-family: 'SF Mono', 'Menlo', 'Courier New', monospace; font-size: 14px; color: var(--text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .login-copy-btn { background: none; border: none; cursor: pointer; padding: 6px; -webkit-tap-highlight-color: transparent; flex-shrink: 0; }
+    .login-copy-btn svg { width: 16px; height: 16px; fill: #bbb; }
+    .login-copy-btn:active svg { fill: var(--primary); }
+    .vote-row { display: flex; align-items: center; gap: 2px; margin-top: 6px; padding-top: 8px; border-top: 1px solid var(--border); }
+    .vote-btn { background: none; border: none; cursor: pointer; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; -webkit-tap-highlight-color: transparent; font-size: 16px; color: #bbb; transition: background 0.15s, color 0.15s; }
+    .vote-btn:active { background: var(--bg); }
+    .vote-btn.voted-up { color: #2e7d32; background: #e8f5e9; }
+    .vote-btn.voted-down { color: #c62828; background: #ffebee; }
+    .vote-score { font-size: 14px; font-weight: 600; min-width: 32px; text-align: center; }
+    .vote-score.positive { color: #2e7d32; }
+    .vote-score.negative { color: #c62828; }
+    .vote-score.neutral { color: var(--text-secondary); }
+    .login-deprecated { opacity: 0.45; filter: grayscale(0.8); }
+    .login-deprecated-warning { font-size: 11px; color: #c62828; font-weight: 500; margin-top: 6px; padding: 4px 8px; background: #ffebee; border-radius: 6px; text-align: center; }
     .section-header { font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; padding: 12px 4px 6px; }
     .empty-state { text-align: center; padding: 48px 24px; color: var(--text-secondary); }
     .empty-state svg { width: 48px; height: 48px; fill: #ccc; margin-bottom: 12px; }
@@ -150,6 +171,7 @@
         <button data-tab="gcuh">GCUH <span class="count-badge" id="count-gcuh">0</span></button>
         <button data-tab="robina">Robina <span class="count-badge" id="count-robina">0</span></button>
         <button data-tab="depts">Depts</button>
+        <button data-tab="logins">Logins</button>
       </nav>
     </div>
     <div class="sync-status" id="syncStatus">Connecting...</div>
@@ -302,6 +324,27 @@
       </div>
     </div>
 
+    <!-- Login Modal -->
+    <div class="modal-overlay" id="loginModalOverlay">
+      <div class="modal">
+        <h2 id="loginModalTitle">Add Login</h2>
+        <form id="loginForm">
+          <div class="form-group"><label for="inputProvider">Provider Name</label><input type="text" id="inputProvider" list="providerList" placeholder="e.g. QML Pathology" required><datalist id="providerList"></datalist></div>
+          <div class="form-group"><label for="inputCategory">Type</label>
+            <select id="inputCategory" required>
+              <option value="">Select type...</option>
+              <option value="Radiology">Radiology / Imaging</option>
+              <option value="Pathology">Pathology</option>
+            </select>
+          </div>
+          <div class="form-group"><label for="inputUsername">Username</label><input type="text" id="inputUsername" placeholder="Username" required autocomplete="off" autocorrect="off" spellcheck="false"></div>
+          <div class="form-group"><label for="inputPassword">Password</label><input type="text" id="inputPassword" placeholder="Password" required autocomplete="off" autocorrect="off" spellcheck="false"></div>
+          <div class="modal-actions"><button type="button" class="btn-cancel" id="loginBtnCancel">Cancel</button><button type="submit" class="btn-save">Save</button></div>
+          <button type="button" class="btn-delete" id="loginBtnDelete" style="display:none">Delete Login</button>
+        </form>
+      </div>
+    </div>
+
     <div id="toast">Copied!</div>
   </div>
 
@@ -389,8 +432,12 @@
       let activeTab = 'all';
       let searchTerm = '';
       let editingId = null;
+      let editingLoginId = null;
       let firebaseReady = false;
       let selectedDept = null; // For specialty drill-down
+      let selectedProvider = null; // For login drill-down
+      let logins = [];
+      const deviceId = localStorage.getItem('gch_device_id') || (() => { const id = Date.now().toString(36) + Math.random().toString(36).slice(2,8); localStorage.setItem('gch_device_id', id); return id; })();
 
       const contactList = document.getElementById('contactList');
       const searchBar = document.getElementById('searchBar');
@@ -481,6 +528,134 @@
         contactsRef.child(id).remove();
         contacts = contacts.filter(c => c.id !== id);
         localStorage.setItem('gch_contacts', JSON.stringify(contacts));
+      }
+
+      // --- Logins Firebase Sync ---
+      const loginsRef = db.ref('logins');
+
+      const DEFAULT_LOGINS = [
+        // RADIOLOGY
+        {id:1,provider:'PACS',category:'Radiology',username:'DaunerS',password:'pacs',votes:{},isCustom:false},
+        {id:2,provider:'South Coast Radiology (SCR)',category:'Radiology',username:'ctracey',password:'@scr!',votes:{},isCustom:false},
+        {id:3,provider:'Gold Coast Radiology (GCR)',category:'Radiology',username:'cheemac',password:'Chestify6',votes:{},isCustom:false},
+        {id:4,provider:'Gold Coast Radiology (GCR)',category:'Radiology',username:'pec',password:'ec-123',votes:{},isCustom:false},
+        {id:5,provider:'North Coast Radiology (NCR)',category:'Radiology',username:'35531',password:'nj35531',votes:{},isCustom:false},
+        {id:6,provider:'North Coast Radiology (NCR)',category:'Radiology',username:'37225',password:'sb37225',votes:{},isCustom:false},
+        {id:7,provider:'Exact Radiology',category:'Radiology',username:'andrew815',password:'Andrew@815',votes:{},isCustom:false},
+        {id:8,provider:'Exact Radiology',category:'Radiology',username:'Ihopd',password:'Ihwaiting',votes:{},isCustom:false},
+        {id:9,provider:'Exact Radiology',category:'Radiology',username:'Alexnesbitt',password:'Nesbitt1',votes:{},isCustom:false},
+        {id:10,provider:'Enterprise',category:'Radiology',username:'gibbsju',password:'gibbsju1',votes:{},isCustom:false},
+        {id:11,provider:'Enterprise',category:'Radiology',username:'gohchi',password:'password1',votes:{},isCustom:false},
+        {id:12,provider:'Queensland X-Ray (QXR)',category:'Radiology',username:'stxaxr23',password:'Robinson1',votes:{},isCustom:false},
+        {id:13,provider:'Queensland X-Ray (QXR)',category:'Radiology',username:'stxdemc2',password:'mp4qVq29',votes:{},isCustom:false},
+        {id:14,provider:'Queensland X-Ray (QXR)',category:'Radiology',username:'stxlosau',password:'Saunders01',votes:{},isCustom:false},
+        {id:15,provider:'Queensland X-Ray (QXR)',category:'Radiology',username:'Stxml9',password:'Tiare14',votes:{},isCustom:false},
+        {id:16,provider:'Queensland X-Ray (QXR)',category:'Radiology',username:'Stxacha',password:'7yqFry23',votes:{},isCustom:false},
+        {id:17,provider:'Queensland X-Ray (QXR)',category:'Radiology',username:'Stxjar4',password:'SKLsee72',votes:{},isCustom:false},
+        {id:18,provider:'Qscan Radiology Clinics (QSCAN)',category:'Radiology',username:'albj',password:'qscan',votes:{},isCustom:false},
+        {id:19,provider:'Qscan Radiology Clinics (QSCAN)',category:'Radiology',username:'ghed',password:'qscan1',votes:{},isCustom:false},
+        {id:20,provider:'Qscan Radiology Clinics (QSCAN)',category:'Radiology',username:'vaotuuad',password:'GCUHxray01',votes:{},isCustom:false},
+        {id:21,provider:'Qscan Radiology Clinics (QSCAN)',category:'Radiology',username:'GCUHANC',password:'Antenatal24',votes:{},isCustom:false},
+        {id:22,provider:'Qscan Radiology Clinics (QSCAN)',category:'Radiology',username:'stubicanm',password:'Bruno91',votes:{},isCustom:false},
+        {id:23,provider:'Qscan Radiology Clinics (QSCAN)',category:'Radiology',username:'faruquer',password:'qscan3',votes:{},isCustom:false},
+        {id:24,provider:'Queensland Diagnostic Imaging (QDI)',category:'Radiology',username:'TengR',password:'Password1',votes:{},isCustom:false},
+        {id:25,provider:'Queensland Diagnostic Imaging (QDI)',category:'Radiology',username:'IpswichEPS',password:'Ipswich1',votes:{},isCustom:false},
+        {id:26,provider:'Queensland Diagnostic Imaging (QDI)',category:'Radiology',username:'ben.mcelwee',password:'Fracture1',votes:{},isCustom:false},
+        {id:27,provider:'Queensland Diagnostic Imaging (QDI)',category:'Radiology',username:'stxjoku',password:'282hebGe',votes:{},isCustom:false},
+        {id:28,provider:'Queensland Diagnostic Imaging (QDI)',category:'Radiology',username:'willtalbot',password:'Sophie223!',votes:{},isCustom:false},
+        {id:29,provider:'Queensland Diagnostic Imaging (QDI)',category:'Radiology',username:'GCUH-MIIC',password:'GCH-mi1c',votes:{},isCustom:false},
+        {id:30,provider:'Radiology',category:'Radiology',username:'Stxlcm1',password:'Miller1',votes:{},isCustom:false},
+        {id:31,provider:'Radiant Radiology',category:'Radiology',username:'hjennings',password:'Radiant2!',votes:{},isCustom:false},
+        {id:32,provider:'Radiant Radiology',category:'Radiology',username:'fractureclinic',password:'Fracture2!',votes:{},isCustom:false},
+        {id:33,provider:'I-MED Radiology Network (I-MED)',category:'Radiology',username:'immwillsdon',password:'RedcliffED1',votes:{},isCustom:false},
+        {id:34,provider:'I-MED Radiology Network (I-MED)',category:'Radiology',username:'immrhee',password:'Andrew@815',votes:{},isCustom:false},
+        {id:35,provider:'I-MED Radiology Network (I-MED)',category:'Radiology',username:'Imhrhee',password:'password1',votes:{},isCustom:false},
+        {id:36,provider:'I-MED Radiology Network (I-MED)',category:'Radiology',username:'96577',password:'Radiology1',votes:{},isCustom:false},
+        {id:37,provider:'I-MED Radiology Network (I-MED)',category:'Radiology',username:'imjlam3',password:'Steen 10!a',votes:{},isCustom:false},
+        {id:38,provider:'Iris Imaging',category:'Radiology',username:'gcuni',password:'gcuni',votes:{},isCustom:false},
+        {id:39,provider:'Mermaid Beach Radiology',category:'Radiology',username:'joash.kumar@sp',password:'Jak123321',votes:{},isCustom:false},
+        {id:40,provider:'Mermaid Beach Radiology',category:'Radiology',username:'fiokelly',password:'GCUHortho1',votes:{},isCustom:false},
+        {id:41,provider:'Mermaid Beach Radiology',category:'Radiology',username:'GCH-MIIC',password:'GCH-mi1c',votes:{},isCustom:false},
+        {id:42,provider:'Lumus Imaging',category:'Radiology',username:'ben.mcelwee',password:'Fracture1',votes:{},isCustom:false},
+        {id:43,provider:'Lumus Imaging',category:'Radiology',username:'stxjoku',password:'ugT9FE33',votes:{},isCustom:false},
+        {id:44,provider:'Lumus Imaging',category:'Radiology',username:'willtalbot',password:'Sophie223!',votes:{},isCustom:false},
+        {id:45,provider:'Lime Radiology',category:'Radiology',username:'redcliffeed',password:'Password!1',votes:{},isCustom:false},
+        {id:46,provider:'WiSE Specialist Emergency (Wise)',category:'Radiology',username:'gchospi',password:'gchospi',votes:{},isCustom:false},
+        {id:47,provider:'WiSE Specialist Emergency (Wise)',category:'Radiology',username:'wise',password:'wise4',votes:{},isCustom:false},
+        {id:48,provider:'Panorama Radiology Specialists',category:'Radiology',username:'oryan',password:'Welcome2PRS!',votes:{},isCustom:false},
+        // PATHOLOGY
+        {id:49,provider:'Sullivan Nicolaides Pathology (SNP)',category:'Pathology',username:'stxvwl2',password:'BTPmcm55',votes:{},isCustom:false},
+        {id:50,provider:'Sullivan Nicolaides Pathology (SNP)',category:'Pathology',username:'stxmkr5',password:'EDPnkp53',votes:{},isCustom:false},
+        {id:51,provider:'Sullivan Nicolaides Pathology (SNP)',category:'Pathology',username:'stxmjw15',password:'Emergency1',votes:{},isCustom:false},
+        {id:52,provider:'Sullivan Nicolaides Pathology (SNP)',category:'Pathology',username:'stxpahuopd',password:'turp3344',votes:{},isCustom:false},
+        {id:53,provider:'Sullivan Nicolaides Pathology (SNP)',category:'Pathology',username:'stxrxd10',password:'Emergency1',votes:{},isCustom:false},
+        {id:54,provider:'Sullivan Nicolaides Pathology (SNP)',category:'Pathology',username:'stxgcuhco',password:'Children01',votes:{},isCustom:false},
+        {id:55,provider:'Sullivan Nicolaides Pathology (SNP)',category:'Pathology',username:'Stx04622',password:'Emergency2016',votes:{},isCustom:false},
+        {id:56,provider:'QML Pathology (QML)',category:'Pathology',username:'rokmat',password:'Monday123',votes:{},isCustom:false},
+        {id:57,provider:'QML Pathology (QML)',category:'Pathology',username:'Pahopd',password:'Qmlp1234',votes:{},isCustom:false},
+        {id:58,provider:'QML Pathology (QML)',category:'Pathology',username:'QEIIED',password:'Emergency1',votes:{},isCustom:false},
+        {id:59,provider:'QML Pathology (QML)',category:'Pathology',username:'GCUHCOPD',password:'Children01',votes:{},isCustom:false},
+        {id:60,provider:'Mater Pathology',category:'Pathology',username:'andrew815',password:'andrew815',votes:{},isCustom:false},
+        {id:61,provider:'Medway (QML Portal)',category:'Pathology',username:'rbwhurology',password:'Urology16',votes:{},isCustom:false},
+        {id:62,provider:'IntelliCardiovascular',category:'Pathology',username:'GCUHcardio',password:'password',votes:{},isCustom:false},
+        {id:63,provider:'4Cyte Pathology',category:'Pathology',username:'GCUED',password:'Southport1!',votes:{},isCustom:false},
+        {id:64,provider:'4Cyte Pathology',category:'Pathology',username:'064489BB',password:'Antenatal21!',votes:{},isCustom:false},
+        {id:65,provider:'4Cyte Pathology',category:'Pathology',username:'060511SM',password:'Children01!',votes:{},isCustom:false}
+      ];
+
+      function initLoginsFirebase() {
+        loginsRef.once('value').then(snap => {
+          if (!snap.exists()) {
+            const data = {};
+            DEFAULT_LOGINS.forEach(l => { data[l.id] = l; });
+            loginsRef.set(data);
+          }
+        });
+        loginsRef.on('value', snap => {
+          const data = snap.val();
+          logins = data ? Object.values(data) : [];
+          localStorage.setItem('gch_logins', JSON.stringify(logins));
+          if (activeTab === 'logins') render();
+        }, () => {
+          const stored = localStorage.getItem('gch_logins');
+          if (stored) logins = JSON.parse(stored);
+          else logins = DEFAULT_LOGINS.map(l => ({ ...l }));
+          if (activeTab === 'logins') render();
+        });
+      }
+
+      function getNetScore(login) {
+        if (!login.votes || typeof login.votes !== 'object') return 0;
+        return Object.values(login.votes).reduce((sum, v) => sum + v, 0);
+      }
+
+      function getMyVote(login) {
+        if (!login.votes || typeof login.votes !== 'object') return 0;
+        return login.votes[deviceId] || 0;
+      }
+
+      function handleVote(loginId, direction) {
+        const login = logins.find(l => String(l.id) === String(loginId));
+        if (!login) return;
+        const voteRef = loginsRef.child(login.id + '/votes/' + deviceId);
+        const currentVote = getMyVote(login);
+        const newVal = direction === 'up' ? 1 : -1;
+        if (currentVote === newVal) {
+          voteRef.remove();
+        } else {
+          voteRef.set(newVal);
+        }
+      }
+
+      function saveLogin(login) {
+        loginsRef.child(login.id).set(login);
+        localStorage.setItem('gch_logins', JSON.stringify(logins));
+      }
+
+      function deleteLogin(id) {
+        loginsRef.child(id).remove();
+        logins = logins.filter(l => String(l.id) !== String(id));
+        localStorage.setItem('gch_logins', JSON.stringify(logins));
       }
 
       // --- Format ---
@@ -594,7 +769,77 @@
         contactList.innerHTML = html;
       }
 
+      function renderLoginCard(l) {
+        const score = getNetScore(l);
+        const myVote = getMyVote(l);
+        const deprecated = score <= -20;
+        const scoreClass = score > 0 ? 'positive' : score < 0 ? 'negative' : 'neutral';
+        const upClass = myVote === 1 ? ' voted-up' : '';
+        const downClass = myVote === -1 ? ' voted-down' : '';
+        const copyIcon = '<svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>';
+        return `<div class="login-card${deprecated ? ' login-deprecated' : ''}" data-login-id="${l.id}">
+          <div class="login-field"><span class="login-label">User</span><span class="login-field-value">${escapeHtml(l.username)}</span><button class="login-copy-btn" data-copy-login="${l.id}" data-copy-field="username">${copyIcon}</button></div>
+          <div class="login-field"><span class="login-label">Pass</span><span class="login-field-value">${escapeHtml(l.password)}</span><button class="login-copy-btn" data-copy-login="${l.id}" data-copy-field="password">${copyIcon}</button></div>
+          <div class="vote-row">
+            <button class="vote-btn${upClass}" data-vote-id="${l.id}" data-vote="up">&#9650;</button>
+            <span class="vote-score ${scoreClass}">${score}</span>
+            <button class="vote-btn${downClass}" data-vote-id="${l.id}" data-vote="down">&#9660;</button>
+            <svg class="action-icon edit-icon" data-edit-login="${l.id}" viewBox="0 0 24 24" style="margin-left:auto"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+            <svg class="action-icon delete-icon" data-delete-login="${l.id}" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+          </div>
+          ${deprecated ? '<div class="login-deprecated-warning">&#9888; This login is unlikely to work</div>' : ''}
+        </div>`;
+      }
+
+      function renderLoginDirectory() {
+        let filtered = logins;
+        if (searchTerm) {
+          const q = searchTerm.toLowerCase();
+          filtered = filtered.filter(l => l.provider.toLowerCase().includes(q) || l.category.toLowerCase().includes(q) || l.username.toLowerCase().includes(q));
+        }
+        // Group by category then provider
+        const categories = { 'Radiology': {}, 'Pathology': {} };
+        filtered.forEach(l => {
+          const cat = l.category || 'Radiology';
+          if (!categories[cat]) categories[cat] = {};
+          if (!categories[cat][l.provider]) categories[cat][l.provider] = 0;
+          categories[cat][l.provider]++;
+        });
+        let html = '';
+        for (const cat of ['Radiology', 'Pathology']) {
+          const providers = Object.entries(categories[cat] || {}).sort((a, b) => a[0].localeCompare(b[0]));
+          if (providers.length === 0) continue;
+          html += `<div class="login-category-header">${cat} (${providers.reduce((s,p)=>s+p[1],0)})</div>`;
+          html += '<div class="dept-grid">';
+          for (const [prov, count] of providers) {
+            html += `<div class="dept-card" data-provider="${escapeHtml(prov)}"><span class="dept-card-name">${escapeHtml(prov)}</span><span class="dept-card-count">${count}</span></div>`;
+          }
+          html += '</div>';
+        }
+        if (!html) html = '<div class="empty-state"><p>No logins found</p></div>';
+        contactList.innerHTML = html;
+      }
+
+      function renderLoginDetail(provider) {
+        const providerLogins = logins.filter(l => l.provider === provider).sort((a, b) => getNetScore(b) - getNetScore(a));
+        let html = `<button class="dept-back" id="loginBack"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg> All Logins</button>`;
+        html += `<div class="dept-title">${escapeHtml(provider)}</div>`;
+        if (providerLogins.length === 0) {
+          html += '<div class="empty-state"><p>No logins for this provider</p></div>';
+        } else {
+          providerLogins.forEach(l => { html += renderLoginCard(l); });
+        }
+        html += `<div class="dept-add-btn" data-login-add="${escapeHtml(provider)}">+ Add login to ${escapeHtml(provider)}</div>`;
+        contactList.innerHTML = html;
+      }
+
       function render() {
+        if (activeTab === 'logins') {
+          if (selectedProvider) renderLoginDetail(selectedProvider);
+          else renderLoginDirectory();
+          updateCounts();
+          return;
+        }
         if (activeTab === 'depts') {
           if (selectedDept) {
             renderDeptDetail(selectedDept);
@@ -748,14 +993,58 @@
         btn.classList.add('active');
         activeTab = btn.dataset.tab;
         selectedDept = null;
+        selectedProvider = null;
         addBtn.style.display = (activeTab === 'depts') ? 'none' : 'flex';
+        searchBar.placeholder = (activeTab === 'logins') ? 'Search provider name...' : 'Search name or number...';
         render();
       });
 
       contactList.addEventListener('click', function(e) {
+        // Login: vote buttons
+        const voteBtn = e.target.closest('.vote-btn');
+        if (voteBtn) { e.stopPropagation(); handleVote(voteBtn.dataset.voteId, voteBtn.dataset.vote); return; }
+        // Login: copy buttons
+        const copyBtn = e.target.closest('.login-copy-btn');
+        if (copyBtn) {
+          e.stopPropagation();
+          const login = logins.find(l => String(l.id) === String(copyBtn.dataset.copyLogin));
+          if (login) {
+            const val = copyBtn.dataset.copyField === 'username' ? login.username : login.password;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(val).then(() => showToast('Copied ' + copyBtn.dataset.copyField));
+            } else {
+              const ta = document.createElement('textarea'); ta.value = val; ta.style.cssText = 'position:fixed;opacity:0';
+              document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+              showToast('Copied ' + copyBtn.dataset.copyField);
+            }
+          }
+          return;
+        }
+        // Login: edit login
+        const editLoginBtn = e.target.closest('[data-edit-login]');
+        if (editLoginBtn) { e.stopPropagation(); openLoginModal(editLoginBtn.dataset.editLogin); return; }
+        // Login: delete login
+        const deleteLoginBtn = e.target.closest('[data-delete-login]');
+        if (deleteLoginBtn) {
+          e.stopPropagation();
+          const login = logins.find(l => String(l.id) === String(deleteLoginBtn.dataset.deleteLogin));
+          if (login && confirm('Delete this login for "' + login.provider + '"?')) {
+            deleteLogin(login.id); render(); showToast('Login deleted');
+          }
+          return;
+        }
+        // Login: back button
+        const loginBack = e.target.closest('#loginBack');
+        if (loginBack) { selectedProvider = null; render(); return; }
+        // Login: add login to provider
+        const loginAdd = e.target.closest('[data-login-add]');
+        if (loginAdd) { openLoginModal(); document.getElementById('inputProvider').value = loginAdd.dataset.loginAdd; return; }
+        // Login: provider card click
+        const provCard = e.target.closest('.dept-card[data-provider]');
+        if (provCard && activeTab === 'logins') { selectedProvider = provCard.dataset.provider; render(); return; }
         // Dept directory: click a department card
         const deptCard = e.target.closest('.dept-card');
-        if (deptCard) { selectedDept = deptCard.dataset.dept; render(); return; }
+        if (deptCard && activeTab === 'depts') { selectedDept = deptCard.dataset.dept; render(); return; }
         // Dept detail: back button
         const deptBack = e.target.closest('#deptBack');
         if (deptBack) { selectedDept = null; render(); return; }
@@ -763,13 +1052,12 @@
         const deptAdd = e.target.closest('.dept-add-btn');
         if (deptAdd) {
           openModal();
-          // Pre-fill the specialty dropdown
           inputSpecialty.value = deptAdd.dataset.deptAdd;
           return;
         }
-        const editBtn = e.target.closest('.edit-icon');
+        const editBtn = e.target.closest('.edit-icon[data-edit]');
         if (editBtn) { e.stopPropagation(); openModal(parseInt(editBtn.dataset.edit)); return; }
-        const deleteBtn = e.target.closest('.delete-icon');
+        const deleteBtn = e.target.closest('.delete-icon[data-delete]');
         if (deleteBtn) {
           e.stopPropagation();
           const id = parseInt(deleteBtn.dataset.delete);
@@ -783,7 +1071,7 @@
         if (card) copyPhone(card.dataset.phone);
       });
 
-      addBtn.addEventListener('click', () => openModal());
+      addBtn.addEventListener('click', () => { if (activeTab === 'logins') openLoginModal(); else openModal(); });
       btnCancel.addEventListener('click', closeModal);
       modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) closeModal(); });
 
@@ -817,6 +1105,81 @@
         }
         closeModal(); render();
         showToast(editingId ? 'Contact updated' : 'Contact added');
+      });
+
+      // --- Login Modal ---
+      const loginModalOverlay = document.getElementById('loginModalOverlay');
+      const loginForm = document.getElementById('loginForm');
+      const loginModalTitle = document.getElementById('loginModalTitle');
+      const loginBtnCancel = document.getElementById('loginBtnCancel');
+      const loginBtnDelete = document.getElementById('loginBtnDelete');
+      const inputProvider = document.getElementById('inputProvider');
+      const inputCategory = document.getElementById('inputCategory');
+      const inputUsername = document.getElementById('inputUsername');
+      const inputPassword = document.getElementById('inputPassword');
+      const providerList = document.getElementById('providerList');
+
+      function populateProviderDatalist() {
+        const providers = [...new Set(logins.map(l => l.provider))].sort();
+        providerList.innerHTML = providers.map(p => `<option value="${escapeHtml(p)}">`).join('');
+      }
+
+      function openLoginModal(id) {
+        editingLoginId = id || null;
+        populateProviderDatalist();
+        if (editingLoginId) {
+          const l = logins.find(x => String(x.id) === String(editingLoginId));
+          if (!l) return;
+          loginModalTitle.textContent = 'Edit Login';
+          inputProvider.value = l.provider;
+          inputCategory.value = l.category;
+          inputUsername.value = l.username;
+          inputPassword.value = l.password;
+          loginBtnDelete.style.display = 'block';
+        } else {
+          loginModalTitle.textContent = 'Add Login';
+          loginForm.reset();
+          loginBtnDelete.style.display = 'none';
+          // Pre-fill category if coming from a provider detail
+          if (selectedProvider) {
+            const existing = logins.find(l => l.provider === selectedProvider);
+            if (existing) inputCategory.value = existing.category;
+          }
+        }
+        loginModalOverlay.classList.add('show');
+        setTimeout(() => inputProvider.focus(), 300);
+      }
+
+      function closeLoginModal() { loginModalOverlay.classList.remove('show'); editingLoginId = null; }
+
+      loginBtnCancel.addEventListener('click', closeLoginModal);
+      loginModalOverlay.addEventListener('click', e => { if (e.target === loginModalOverlay) closeLoginModal(); });
+
+      loginBtnDelete.addEventListener('click', function() {
+        if (editingLoginId && confirm('Delete this login?')) {
+          deleteLogin(editingLoginId); closeLoginModal(); render(); showToast('Login deleted');
+        }
+      });
+
+      loginForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const provider = inputProvider.value.trim();
+        const category = inputCategory.value;
+        const username = inputUsername.value.trim();
+        const password = inputPassword.value.trim();
+        if (!provider || !category || !username || !password) { showToast('Please fill in all fields'); return; }
+
+        if (editingLoginId) {
+          const l = logins.find(x => String(x.id) === String(editingLoginId));
+          if (l) { l.provider = provider; l.category = category; l.username = username; l.password = password; saveLogin(l); }
+        } else {
+          const maxId = logins.reduce((max, l) => Math.max(max, typeof l.id === 'number' ? l.id : 0), 0);
+          const newLogin = { id: maxId + 1, provider, category, username, password, votes: {}, isCustom: true, createdAt: Date.now() };
+          logins.push(newLogin);
+          saveLogin(newLogin);
+        }
+        closeLoginModal(); render();
+        showToast(editingLoginId ? 'Login updated' : 'Login added');
       });
 
       // --- Settings ---
@@ -927,6 +1290,7 @@
 
       // Init
       initFirebase();
+      initLoginsFirebase();
 
       // Register service worker
       if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js').catch(() => {});
